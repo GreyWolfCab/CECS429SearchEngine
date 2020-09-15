@@ -4,6 +4,7 @@ import cecs429.index.Index;
 import cecs429.index.Posting;
 
 import java.util.List;
+import java.util.ArrayList;
 import java.util.stream.Collectors;
 
 /**
