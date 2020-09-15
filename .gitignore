@@ -1,0 +1,4 @@
+/out/
+.idea/
+*.json
+!all-nps-sites.json
