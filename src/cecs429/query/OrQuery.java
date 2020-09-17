@@ -5,6 +5,7 @@ import cecs429.index.Posting;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -15,7 +16,18 @@ public class OrQuery implements Query {
 	private List<Query> mChildren;
 	
 	public OrQuery(Iterable<Query> children) {
-		mChildren = new ArrayList<>(children);
+
+		mChildren = new ArrayList<>();
+
+		children.forEach(new Consumer<Query>() {
+
+			@Override
+			public void accept(Query q) {
+				mChildren.add(q);
+			}
+
+		});
+
 	}
 	
 	@Override
