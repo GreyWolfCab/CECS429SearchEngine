@@ -4,6 +4,7 @@ import cecs429.index.Index;
 import cecs429.index.Posting;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -15,7 +16,8 @@ public class OrQuery implements Query {
 	private List<Query> mChildren;
 
 	public OrQuery(Iterable<Query> children) {
-		mChildren = new ArrayList<>(children);
+
+		mChildren = new ArrayList<Query>((Collection<? extends Query>) children);
 	}
 
 	@Override
@@ -24,6 +26,11 @@ public class OrQuery implements Query {
 
 		// TODO: program the merge for an OrQuery, by gathering the postings of the composed Query children and
 		// unioning the resulting postings.
+
+		for (int i = 0; i < mChildren.size(); i++){
+			// union each postings list to the results list
+			result.addAll(mChildren.get(i).getPostings(index));
+		}
 
 		return result;
 	}
