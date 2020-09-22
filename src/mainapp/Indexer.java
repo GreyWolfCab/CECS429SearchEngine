@@ -3,8 +3,14 @@ package mainapp;
 import cecs429.documents.DirectoryCorpus;
 import cecs429.documents.Document;
 import cecs429.documents.DocumentCorpus;
+import cecs429.index.Index;
+import cecs429.index.PositionalInvertedIndex;
+import cecs429.index.PositionalPosting;
+import cecs429.text.AdvancedTokenProcesser;
+import cecs429.text.EnglishTokenStream;
 
 import java.nio.file.*;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Indexer {
@@ -14,9 +20,58 @@ public class Indexer {
         DocumentCorpus corpus = requestDirectory();//collect all documents from a directory
 
         Iterable<Document> docs = corpus.getDocuments();
-        for (Document doc : docs) {
-            System.out.println(doc.getTitle());
+        for (Document doc : docs) {//print each document associated with its id
+            System.out.println(doc.getId() + ": " + doc.getTitle());
         }
+
+        //I think Index has to remain an interface
+        PositionalInvertedIndex index = (PositionalInvertedIndex)indexCorpus(corpus);
+
+        //prints the dictionary of the index
+//        for (int i = 0; i < index.size(); i++) {
+//            System.out.println(i + ": " + index.getDictionary()[i]);
+//        }
+
+        System.out.println("\nSearch index test:");
+
+        //basic test for the positional inverted index
+        for (PositionalPosting posting : index.getPostings("the")) {
+            System.out.print("Document ID: " + posting.getId() + " Positions: ");
+            for (Integer positions : posting.getPositions()) {
+                System.out.print(positions + ", ");
+            }
+            System.out.println();
+        }
+
+    }
+
+    private static Index indexCorpus(DocumentCorpus corpus) {
+
+        PositionalInvertedIndex index = new PositionalInvertedIndex();//create positional index
+        AdvancedTokenProcesser processor = new AdvancedTokenProcesser();//create token processor
+
+        // Get all the documents in the corpus by calling GetDocuments().
+        Iterable<Document> documents = corpus.getDocuments();
+
+        for (Document docs : documents) {//iterate through every valid document found in the corpus
+
+            // Tokenize the document's content by constructing an EnglishTokenStream around the document's content.
+            EnglishTokenStream stream = new EnglishTokenStream(docs.getContent());
+            Iterable<String> tokens = stream.getTokens();//convert read data into tokens
+            int wordPosition = 1;//maintain the position of the word throughout the document
+
+            // Iterate through the tokens in the document, processing them using a BasicTokenProcessor,
+            for (String token : tokens) {
+
+                ArrayList<String> word = processor.processToken(token);//convert a token to indexable terms
+                index.add(word.get(0), docs.getId(), wordPosition);//add word data to index
+                wordPosition++;//increment word position
+
+            }
+
+        }
+
+        return index;
 
     }
 
