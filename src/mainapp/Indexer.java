@@ -11,6 +11,7 @@ import cecs429.text.EnglishTokenStream;
 
 import java.nio.file.*;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 public class Indexer {
@@ -63,7 +64,7 @@ public class Indexer {
             // Iterate through the tokens in the document, processing them using a BasicTokenProcessor,
             for (String token : tokens) {
 
-                ArrayList<String> word = processor.processToken(token);//convert a token to indexable terms
+                List<String> word = processor.processToken(token);//convert a token to indexable terms
                 index.add(word.get(0), docs.getId(), wordPosition);//add word data to index
                 wordPosition++;//increment word position
 
