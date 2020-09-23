@@ -141,15 +141,28 @@ public class BooleanQueryParser {
 	 */
 	private Literal findNextLiteral(String subquery, int startIndex) {
 		int subLength = subquery.length();
+		int nextSpace = 0;
 		int lengthOut;
+		boolean isPhraseLiteral;
 
 		// Skip past white space.
 		while (subquery.charAt(startIndex) == ' ') {
 			++startIndex;
 		}
 
-		// Locate the next space to find the end of this literal.
-		int nextSpace = subquery.indexOf(' ', startIndex);
+		// Check whether the the next Literal is a Phrase or not
+		if (subquery.charAt(startIndex) == '\"'){
+			//System.out.println("phrase literal");
+			// Locate the next " to find the end of this Phrase literal.
+			nextSpace = subquery.indexOf('\"', startIndex + 1) + 1;
+			isPhraseLiteral = true;
+		} else {
+			//System.out.println("reg literal");
+			// Locate the next space to find the end of this literal.
+			nextSpace = subquery.indexOf(' ', startIndex);
+			isPhraseLiteral = false;
+		}
+
 		if (nextSpace < 0) {
 			// No more literals in this subquery.
 			lengthOut = subLength - startIndex;
@@ -159,9 +172,14 @@ public class BooleanQueryParser {
 		}
 
 		// This is a term literal containing a single term.
-		return new Literal(
-				new StringBounds(startIndex, lengthOut),
-				new TermLiteral(subquery.substring(startIndex, startIndex + lengthOut)));
+		if (isPhraseLiteral) {
+			//return new PhraseLiteral();
+		} else {
+			return new Literal(
+					new StringBounds(startIndex, lengthOut),
+					new TermLiteral(subquery.substring(startIndex, startIndex + lengthOut)));
+		}
+
 		
 		/*
 		TODO:
