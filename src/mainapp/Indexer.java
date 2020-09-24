@@ -47,7 +47,7 @@ public class Indexer {
             for (Integer positions : posting.getPositions()) {
                 System.out.print(positions + ", ");
             }
-            System.out.println();
+            System.out.println("\nContent" + corpus.getDocument(posting.getDocumentId()).toString());
         }
 
         System.out.println("\nSearching \"and\":");
@@ -118,7 +118,7 @@ public class Indexer {
         Path currentWorkingPath = Paths.get(input);//Sample: "C:\\Users\\rcthe\\Downloads\\School\\CECS 429 SEO\\testing"
 
         //generate corpus based on files found at the directory
-        corpus = DirectoryCorpus.loadJsonDirectory(currentWorkingPath, ".json");
+        corpus = DirectoryCorpus.loadTextDirectory(currentWorkingPath);
 
         in.close();
 

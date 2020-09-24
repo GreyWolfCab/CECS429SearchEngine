@@ -67,4 +67,9 @@ public class JsonFileDocument implements FileDocument {
     public static FileDocument loadJsonFileDocument(Path absolutePath, int documentId) {
         return new JsonFileDocument(documentId, absolutePath);
     }
+
+    public String toString() {
+        return this.getContent().toString();
+    }
+
 }

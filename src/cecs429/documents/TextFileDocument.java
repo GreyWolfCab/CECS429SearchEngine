@@ -50,4 +50,9 @@ public class TextFileDocument implements FileDocument {
 	public static FileDocument loadTextFileDocument(Path absolutePath, int documentId) {
 		return new TextFileDocument(documentId, absolutePath);
 	}
+
+	public String toString() {
+		return this.getContent().toString();
+	}
+
 }
