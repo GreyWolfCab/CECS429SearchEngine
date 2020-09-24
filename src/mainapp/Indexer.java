@@ -5,13 +5,12 @@ import cecs429.documents.Document;
 import cecs429.documents.DocumentCorpus;
 import cecs429.index.Index;
 import cecs429.index.PositionalInvertedIndex;
-import cecs429.index.PositionalPosting;
 import cecs429.index.Posting;
+import cecs429.query.BooleanQueryParser;
 import cecs429.text.AdvancedTokenProcesser;
 import cecs429.text.EnglishTokenStream;
 
 import java.nio.file.*;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
@@ -26,18 +25,14 @@ public class Indexer {
             System.out.println(doc.getId() + ": " + doc.getTitle());
         }
 
-        //I think Index has to remain an interface
         Index index = indexCorpus(corpus);
 
-        //prints the dictionary of the index
-//        for (int i = 0; i < index.size(); i++) {
-//            System.out.println(i + ": " + index.getDictionary()[i]);
-//        }
+        BooleanQueryParser query = new BooleanQueryParser();
+        System.out.println("\nTesting boolean parser:");
 
-        System.out.println("\nSearch index test:");
+        String searchText = "and manoa";
 
-        //basic test for the positional inverted index
-        for (Posting posting : index.getPostings("the")) {
+        for (Posting posting : query.parseQuery(searchText).getPostings(index)) {
             System.out.print("Document ID: " + posting.getDocumentId() + " Positions: ");
             for (Integer positions : posting.getPositions()) {
                 System.out.print(positions + ", ");
@@ -45,7 +40,27 @@ public class Indexer {
             System.out.println();
         }
 
-        System.out.println(index.getVocabulary());
+        System.out.println("\nSearching \"manoa\":");
+        //basic test for the positional inverted index
+        for (Posting posting : query.parseQuery("manoa").getPostings(index)) {
+            System.out.print("Document ID: " + posting.getDocumentId() + " Positions: ");
+            for (Integer positions : posting.getPositions()) {
+                System.out.print(positions + ", ");
+            }
+            System.out.println();
+        }
+
+        System.out.println("\nSearching \"and\":");
+        //basic test for the positional inverted index
+        for (Posting posting : query.parseQuery("and").getPostings(index)) {
+            System.out.print("Document ID: " + posting.getDocumentId() + " Positions: ");
+            for (Integer positions : posting.getPositions()) {
+                System.out.print(positions + ", ");
+            }
+            System.out.println();
+        }
+
+        System.out.println("\n" + index.getVocabulary());
 
     }
 

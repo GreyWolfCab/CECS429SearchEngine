@@ -140,6 +140,7 @@ public class BooleanQueryParser {
 	 * Locates and returns the next literal from the given subquery string.
 	 */
 	private Literal findNextLiteral(String subquery, int startIndex) {
+
 		int subLength = subquery.length();
 		int nextSpace = 0;
 		int lengthOut;
@@ -180,7 +181,7 @@ public class BooleanQueryParser {
 					new TermLiteral(subquery.substring(startIndex, startIndex + lengthOut)));
 		}
 
-		
+
 		/*
 		TODO:
 		Instead of assuming that we only have single-term literals, modify this method so it will create a PhraseLiteral
