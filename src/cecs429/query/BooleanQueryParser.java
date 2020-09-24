@@ -187,5 +187,6 @@ public class BooleanQueryParser {
 		object if the first non-space character you find is a double-quote ("). In this case, the literal is not ended
 		by the next space character, but by the next double-quote character.
 		 */
+		return null;
 	}
 }

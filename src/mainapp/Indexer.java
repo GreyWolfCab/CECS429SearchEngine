@@ -6,6 +6,7 @@ import cecs429.documents.DocumentCorpus;
 import cecs429.index.Index;
 import cecs429.index.PositionalInvertedIndex;
 import cecs429.index.PositionalPosting;
+import cecs429.index.Posting;
 import cecs429.text.AdvancedTokenProcesser;
 import cecs429.text.EnglishTokenStream;
 
@@ -26,7 +27,7 @@ public class Indexer {
         }
 
         //I think Index has to remain an interface
-        PositionalInvertedIndex index = (PositionalInvertedIndex)indexCorpus(corpus);
+        Index index = indexCorpus(corpus);
 
         //prints the dictionary of the index
 //        for (int i = 0; i < index.size(); i++) {
@@ -36,8 +37,8 @@ public class Indexer {
         System.out.println("\nSearch index test:");
 
         //basic test for the positional inverted index
-        for (PositionalPosting posting : index.getPostings("the")) {
-            System.out.print("Document ID: " + posting.getId() + " Positions: ");
+        for (Posting posting : index.getPostings("the")) {
+            System.out.print("Document ID: " + posting.getDocumentId() + " Positions: ");
             for (Integer positions : posting.getPositions()) {
                 System.out.print(positions + ", ");
             }
@@ -65,7 +66,7 @@ public class Indexer {
             for (String token : tokens) {
 
                 List<String> word = processor.processToken(token);//convert a token to indexable terms
-                index.add(word.get(0), docs.getId(), wordPosition);//add word data to index
+                index.addTerm(word, docs.getId(), wordPosition);//add word data to index
                 wordPosition++;//increment word position
 
             }

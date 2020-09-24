@@ -21,8 +21,7 @@ public class TermLiteral implements Query {
 	
 	@Override
 	public List<Posting> getPostings(Index index) {
-		System.out.println(index.getPostings(mTerm));
-		return null;
+		return index.getPostings(mTerm);
 	}
 	
 	@Override

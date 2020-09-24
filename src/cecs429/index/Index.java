@@ -1,21 +1,17 @@
 package cecs429.index;
 
-import java.util.Map;
+import java.util.List;
 
-public abstract class Index <x> {
+public interface Index  {
 
-	protected Map<String, x> index;
-	
-	public abstract String[] getDictionary();
-	
-	public abstract x getPostings(String token);
-	
-	public abstract void resetIndex();
-	
-	public abstract int size();
+	/**
+	 * Retrieves a list of Postings of documents that contain the given term.
+	 */
+	List<Posting> getPostings(String term);
 
-	protected abstract boolean contains(String token);
-
-	protected abstract void createPosting(String token);
+	/**
+	 * A (sorted) list of all terms in the index vocabulary.
+	 */
+	List<String> getVocabulary();
 
 }

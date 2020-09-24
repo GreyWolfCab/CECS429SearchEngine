@@ -3,7 +3,6 @@ package cecs429.text;
 import org.tartarus.snowball.ext.englishStemmer;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class AdvancedTokenProcesser implements TokenProcessor{
@@ -15,33 +14,27 @@ public class AdvancedTokenProcesser implements TokenProcessor{
         int beginIndex = 0;
         int endIndex = 0;
         String currentToken;
-        String stringArray[];
-        List<String> stringList = new ArrayList<String>();
-        List<String> result = new ArrayList<String>();
+        String stringArray[];//a hyphenated word will return multiple term
+        List<String> result = new ArrayList<String>();//every term derived from the token
 
-        // Remove all non-alphanumeric characters from the beginning and end of token
-        stringArray = token.split("");
-        stringList = Arrays.asList(stringArray);
-
-        // Parse through string array to find beginning index
-        for(int i = 0; i < stringList.size();i++){
-            if(isAlphanumeric(stringList.get(i))){
+        //disqualify beginning characters that are not alphanumeric
+        for (int i = 0; i < token.length(); i++) {
+            if (isAlphanumeric(token.charAt(i))) {
                 beginIndex = i;
                 break;
             }
         }
 
-        // Parse through string array to find ending index
-        for(int i = stringList.size() - 1; i > 0;i--){
-            if(isAlphanumeric(stringList.get(i))){
+        //disqualify ending characters that are not alphanumeric
+        for (int i = token.length()-1; i >= 0; i--) {
+            if (isAlphanumeric(token.charAt(i))) {
                 endIndex = i;
                 break;
             }
         }
 
-        // Change array to only include selected indices
-        stringArray = Arrays.copyOfRange(stringArray, beginIndex, endIndex + 1);
-        currentToken = String.join("", stringArray);
+        //remove excess characters
+        currentToken = token.substring(beginIndex, endIndex+1);
 
         // Remove all apostrophes or quotation marks (single or double) from anywhere in the string
         currentToken = currentToken.replaceAll("\'","");
@@ -49,16 +42,11 @@ public class AdvancedTokenProcesser implements TokenProcessor{
 
         // Remove hyphens and split up the original hyphenated token into multiple tokens (returns combined, and separated strings)
         stringArray = currentToken.split("-",-1);
-        currentToken = currentToken.replaceAll("-","");
 
         // Convert token to lowercase and add to result array
-        result.add(currentToken.toLowerCase());
         for(int i = 0; i < stringArray.length;i++){
             result.add(stringArray[i].toLowerCase());
         }
-
-        // Print result in console
-        //System.out.println(result);
 
         // Stem token using implementation of the Porter2stemmer
         englishStemmer stemmer = new englishStemmer();
@@ -72,8 +60,8 @@ public class AdvancedTokenProcesser implements TokenProcessor{
         return result;
     }
 
-    public static boolean isAlphanumeric(String str) {
-        char c = str.charAt(0);
+    public static boolean isAlphanumeric(char c) {
+        //checks chars exist within the range of letters and numbers via ascii
         if (c < 0x30 || (c >= 0x3a && c <= 0x40) || (c > 0x5a && c <= 0x60) || c > 0x7a){
             return false;
         } else {
