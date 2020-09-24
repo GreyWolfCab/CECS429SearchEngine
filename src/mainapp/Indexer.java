@@ -45,6 +45,8 @@ public class Indexer {
             System.out.println();
         }
 
+        System.out.println(index.getVocabulary());
+
     }
 
     private static Index indexCorpus(DocumentCorpus corpus) {

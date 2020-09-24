@@ -44,9 +44,12 @@ public class AdvancedTokenProcesser implements TokenProcessor{
         stringArray = currentToken.split("-",-1);
 
         // Convert token to lowercase and add to result array
+        StringBuilder combinedToken = new StringBuilder();
         for(int i = 0; i < stringArray.length;i++){
+            combinedToken.append(stringArray[i]);
             result.add(stringArray[i].toLowerCase());
         }
+        result.add(combinedToken.toString());
 
         // Stem token using implementation of the Porter2stemmer
         englishStemmer stemmer = new englishStemmer();
