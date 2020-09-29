@@ -14,9 +14,9 @@ import java.util.stream.Collectors;
 public class AndQuery implements Query {
 	private List<Query> mChildren;
 
-	public AndQuery(Iterable<Query> children) {
+	public AndQuery(Collection<Query> children) {
 
-		mChildren = new ArrayList<Query>((Collection<? extends Query>) children);
+		mChildren = new ArrayList<Query>(children);
 	}
 
 	@Override
@@ -41,7 +41,7 @@ public class AndQuery implements Query {
 		} else {//there are more than 2 postings
 
 			//iterate through the rest of the postings
-			for (int i = 2; i < mChildren.size(); i++) {
+			for (int i = 0; i < mChildren.size(); i++) {
 
 				//verify the next posting appears in at least 1 document
 				if (mChildren.get(i).getPostings(index) != null) {

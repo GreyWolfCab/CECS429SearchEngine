@@ -15,24 +15,92 @@ public class OrQuery implements Query {
 	// The components of the Or query.
 	private List<Query> mChildren;
 
-	public OrQuery(Iterable<Query> children) {
+	public OrQuery(Collection<Query> children) {
 
-		mChildren = new ArrayList<Query>((Collection<? extends Query>) children);
+		mChildren = new ArrayList<Query>(children);
 	}
 
 	@Override
 	public List<Posting> getPostings(Index index) {
-		List<Posting> result = null;
+		List<Posting> result = new ArrayList<>();
 
-		// TODO: program the merge for an OrQuery, by gathering the postings of the composed Query children and
+		if (mChildren.size() < 2) {//should be impossible to reach for or query
+			System.out.println("How did you get in the Or Query?");
+		} else if (mChildren.size() == 2) {//if you only have to merge 2 postings
+
+			//verify the both terms appear at least in one document
+			if (mChildren.get(0).getPostings(index) != null &&
+					mChildren.get(1).getPostings(index) != null) {
+				result = orMergePosting(mChildren.get(0).getPostings(index), mChildren.get(1).getPostings(index));
+			}
+
+		} else {//there are more than 2 postings
+
+			//iterate through the rest of the postings
+			for (int i = 0; i < mChildren.size(); i++) {
+
+				//verify the next posting appears in at least 1 document
+				if (mChildren.get(i).getPostings(index) != null) {
+					result = orMergePosting(mChildren.get(i).getPostings(index), result);
+				}
+
+			}
+
+		}
+
+		// Done: program the merge for an OrQuery, by gathering the postings of the composed Query children and
 		// unioning the resulting postings.
 
-		for (int i = 0; i < mChildren.size(); i++){
-			// union each postings list to the results list
-			result.addAll(mChildren.get(i).getPostings(index));
+		return result;
+	}
+
+	/**
+	 * or merge adds the smallest doc id first, inclusive if both terms have the same id
+	 * @param firstPostings
+	 * @param secondPostings
+	 * @return
+	 */
+	private List<Posting> orMergePosting(List<Posting> firstPostings, List<Posting> secondPostings) {
+
+		List<Posting> result = new ArrayList<Posting>();
+
+		//starting indices for both postings lists
+		int i = 0;
+		int j = 0;
+
+		//iterate through both postings lists, end when one list has no more elements
+		while (i < firstPostings.size() && j < secondPostings.size()) {
+
+			//both lists have this document
+			if (firstPostings.get(i).getDocumentId() == secondPostings.get(j).getDocumentId()) {
+				result.add(firstPostings.get(i));//include it in merged list
+				i++;//iterate through in both lists
+				j++;
+				//first list docid is less than second lists docid
+			} else if (firstPostings.get(i).getDocumentId() < secondPostings.get(j).getDocumentId()) {
+				result.add(firstPostings.get(i));
+				i++;//iterate first list
+			} else {// second list docid is less than first lists docid
+				result.add(secondPostings.get(j));
+				j++;//iterate second list
+			}
+
+		}
+
+		//include the rest of the first postings
+		while (i < firstPostings.size()) {
+			result.add(firstPostings.get(i));
+			i++;
+		}
+
+		//include the rest of the second postings
+		while (j < secondPostings.size()) {
+			result.add(secondPostings.get(j));
+			j++;
 		}
 
 		return result;
+
 	}
 
 	@Override

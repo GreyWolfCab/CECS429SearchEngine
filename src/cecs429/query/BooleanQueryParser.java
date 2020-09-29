@@ -142,28 +142,37 @@ public class BooleanQueryParser {
 	private Literal findNextLiteral(String subquery, int startIndex) {
 
 		int subLength = subquery.length();
-		int nextSpace = 0;
 		int lengthOut;
-		boolean isPhraseLiteral;
 
 		// Skip past white space.
 		while (subquery.charAt(startIndex) == ' ') {
 			++startIndex;
 		}
 
-		// Check whether the the next Literal is a Phrase or not
-		if (subquery.charAt(startIndex) == '\"'){
-			//System.out.println("phrase literal");
-			// Locate the next " to find the end of this Phrase literal.
-			nextSpace = subquery.indexOf('\"', startIndex + 1) + 1;
-			isPhraseLiteral = true;
-		} else {
-			//System.out.println("reg literal");
-			// Locate the next space to find the end of this literal.
-			nextSpace = subquery.indexOf(' ', startIndex);
-			isPhraseLiteral = false;
+		//determine if a phrase literal is next
+		if (subquery.charAt(startIndex) == '\"') {
+			startIndex++;//skip first \"
+			int phraseEnd = subquery.indexOf('\"', startIndex+1);//phrase ending
+			if (phraseEnd >= 0) {
+				lengthOut = phraseEnd - startIndex;
+
+				String[] splitPhrase = subquery.substring(startIndex, startIndex + lengthOut).split(" ");
+				List<Query> phraseTerms = new ArrayList<>();
+				for (int i = 0; i < splitPhrase.length; i++) {
+					phraseTerms.add(new TermLiteral(splitPhrase[i]));
+				}
+
+				// This is a phrase literal containing multiple terms.
+				return new Literal(
+						new StringBounds(startIndex, lengthOut),
+						new PhraseLiteral(phraseTerms));
+
+			}
+
 		}
 
+		// Locate the next space to find the end of this literal.
+		int nextSpace = subquery.indexOf(' ', startIndex);
 		if (nextSpace < 0) {
 			// No more literals in this subquery.
 			lengthOut = subLength - startIndex;
@@ -172,15 +181,12 @@ public class BooleanQueryParser {
 			lengthOut = nextSpace - startIndex;
 		}
 
-		// This is a term literal containing a single term.
-		if (isPhraseLiteral) {
-			//return new PhraseLiteral();
-		} else {
-			return new Literal(
-					new StringBounds(startIndex, lengthOut),
-					new TermLiteral(subquery.substring(startIndex, startIndex + lengthOut)));
-		}
 
+
+		// This is a term literal containing a single term.
+		return new Literal(
+				new StringBounds(startIndex, lengthOut),
+				new TermLiteral(subquery.substring(startIndex, startIndex + lengthOut)));
 
 		/*
 		TODO:
@@ -188,6 +194,54 @@ public class BooleanQueryParser {
 		object if the first non-space character you find is a double-quote ("). In this case, the literal is not ended
 		by the next space character, but by the next double-quote character.
 		 */
-		return null;
+
+//		int subLength = subquery.length();
+//		int nextSpace = 0;
+//		int lengthOut;
+//		boolean isPhraseLiteral;
+//
+//		// Skip past white space.
+//		while (subquery.charAt(startIndex) == ' ') {
+//			++startIndex;
+//		}
+//
+//		// Check whether the the next Literal is a Phrase or not
+//		if (subquery.charAt(startIndex) == '\"'){
+//			//System.out.println("phrase literal");
+//			// Locate the next " to find the end of this Phrase literal.
+//			nextSpace = subquery.indexOf('\"', startIndex + 1) + 1;
+//			isPhraseLiteral = true;
+//		} else {
+//			//System.out.println("reg literal");
+//			// Locate the next space to find the end of this literal.
+//			nextSpace = subquery.indexOf(' ', startIndex);
+//			isPhraseLiteral = false;
+//		}
+//
+//		if (nextSpace < 0) {
+//			// No more literals in this subquery.
+//			lengthOut = subLength - startIndex;
+//		}
+//		else {
+//			lengthOut = nextSpace - startIndex;
+//		}
+//
+//		// This is a term literal containing a single term.
+//		if (isPhraseLiteral) {
+//			//return new PhraseLiteral();
+//		} else {
+//			return new Literal(
+//					new StringBounds(startIndex, lengthOut),
+//					new TermLiteral(subquery.substring(startIndex, startIndex + lengthOut)));
+//		}
+//
+//
+//		/*
+//		TODO:
+//		Instead of assuming that we only have single-term literals, modify this method so it will create a PhraseLiteral
+//		object if the first non-space character you find is a double-quote ("). In this case, the literal is not ended
+//		by the next space character, but by the next double-quote character.
+//		 */
+//		return null;
 	}
 }

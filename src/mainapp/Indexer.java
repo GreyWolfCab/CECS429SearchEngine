@@ -30,9 +30,38 @@ public class Indexer {
         BooleanQueryParser query = new BooleanQueryParser();
         System.out.println("\nTesting boolean parser:");
 
-        String searchText = "and manoa";
+//        //AND query test
+//        //search for the terms: and manoa
+//        String searchText1 = "and manoa";
+//
+//        System.out.println("Searching for: " + searchText1);
+//        for (Posting posting : query.parseQuery(searchText1).getPostings(index)) {
+//            System.out.print("Document ID: " + posting.getDocumentId() + " Positions: ");
+//            for (Integer positions : posting.getPositions()) {
+//                System.out.print(positions + ", ");
+//            }
+//            System.out.println();
+//        }
+//
+//        //OR query test
+//        //search for the terms: and + manoa
+//        String searchText2 = "and + manoa";
+//
+//        System.out.println("\nSearching for: " + searchText2);
+//        for (Posting posting : query.parseQuery(searchText2).getPostings(index)) {
+//            System.out.print("Document ID: " + posting.getDocumentId() + " Positions: ");
+//            for (Integer positions : posting.getPositions()) {
+//                System.out.print(positions + ", ");
+//            }
+//            System.out.println();
+//        }
 
-        for (Posting posting : query.parseQuery(searchText).getPostings(index)) {
+        //PHRASE literal test
+        //search for the phrase: "about a"
+        String searchText3 = "\"about a\"";//Phrase test "about a" is in ch 3 & 1 .txt files
+
+        System.out.println("\nSearching for: " + searchText3);
+        for (Posting posting : query.parseQuery(searchText3).getPostings(index)) {
             System.out.print("Document ID: " + posting.getDocumentId() + " Positions: ");
             for (Integer positions : posting.getPositions()) {
                 System.out.print(positions + ", ");
@@ -40,19 +69,12 @@ public class Indexer {
             System.out.println();
         }
 
-        System.out.println("\nSearching \"manoa\":");
-        //basic test for the positional inverted index
-        for (Posting posting : query.parseQuery("manoa").getPostings(index)) {
-            System.out.print("Document ID: " + posting.getDocumentId() + " Positions: ");
-            for (Integer positions : posting.getPositions()) {
-                System.out.print(positions + ", ");
-            }
-            System.out.println("\nContent" + corpus.getDocument(posting.getDocumentId()).toString());
-        }
+        //PHRASE literal test
+        //search for the phrase: "learn about the"
+        String searchText4 = "\"learn about the\"";//Phrase test "learn about the" showed up 5 times for me
 
-        System.out.println("\nSearching \"and\":");
-        //basic test for the positional inverted index
-        for (Posting posting : query.parseQuery("and").getPostings(index)) {
+        System.out.println("\nSearching for: " + searchText4);
+        for (Posting posting : query.parseQuery(searchText4).getPostings(index)) {
             System.out.print("Document ID: " + posting.getDocumentId() + " Positions: ");
             for (Integer positions : posting.getPositions()) {
                 System.out.print(positions + ", ");
@@ -60,7 +82,30 @@ public class Indexer {
             System.out.println();
         }
 
-        System.out.println("\n" + index.getVocabulary());
+//        //search for the term: manoa
+//        System.out.println("\nSearching for: manoa");
+//        //basic test for the positional inverted index
+//        for (Posting posting : query.parseQuery("manoa").getPostings(index)) {
+//            System.out.print("Document ID: " + posting.getDocumentId() + " Positions: ");
+//            for (Integer positions : posting.getPositions()) {
+//                System.out.print(positions + ", ");
+//            }
+//            System.out.println("\nContent" + corpus.getDocument(posting.getDocumentId()).toString());
+//        }
+//
+//        //search for the term: and
+//        System.out.println("\nSearching for: and");
+//        //basic test for the positional inverted index
+//        for (Posting posting : query.parseQuery("and").getPostings(index)) {
+//            System.out.print("Document ID: " + posting.getDocumentId() + " Positions: ");
+//            for (Integer positions : posting.getPositions()) {
+//                System.out.print(positions + ", ");
+//            }
+//            System.out.println();
+//        }
+//
+//        //vocab in the index test
+//        System.out.println("\n" + index.getVocabulary());
 
     }
 
