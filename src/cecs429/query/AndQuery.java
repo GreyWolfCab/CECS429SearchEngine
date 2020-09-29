@@ -29,7 +29,7 @@ public class AndQuery implements Query {
 
 		if (mChildren.size() < 2) {//should be impossible to reach for and query
 			System.out.println("How did you get in the And Query?");
-		} else if (mChildren.size() == 2) {//if you only have to merge 2 postings
+		} {//if you only have to merge 2 postings
 
 			//verify the both terms appear at least in one document
 			if (mChildren.get(0).getPostings(index) != null &&
@@ -38,10 +38,8 @@ public class AndQuery implements Query {
 				result = andMergePosting(mChildren.get(0).getPostings(index), mChildren.get(1).getPostings(index));
 			}
 
-		} else {//there are more than 2 postings
-
 			//iterate through the rest of the postings
-			for (int i = 0; i < mChildren.size(); i++) {
+			for (int i = 2; i < mChildren.size(); i++) {
 
 				//verify the next posting appears in at least 1 document
 				if (mChildren.get(i).getPostings(index) != null) {

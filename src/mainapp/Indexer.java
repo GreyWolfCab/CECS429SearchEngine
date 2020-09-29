@@ -30,31 +30,31 @@ public class Indexer {
         BooleanQueryParser query = new BooleanQueryParser();
         System.out.println("\nTesting boolean parser:");
 
-//        //AND query test
-//        //search for the terms: and manoa
-//        String searchText1 = "and manoa";
-//
-//        System.out.println("Searching for: " + searchText1);
-//        for (Posting posting : query.parseQuery(searchText1).getPostings(index)) {
-//            System.out.print("Document ID: " + posting.getDocumentId() + " Positions: ");
-//            for (Integer positions : posting.getPositions()) {
-//                System.out.print(positions + ", ");
-//            }
-//            System.out.println();
-//        }
-//
-//        //OR query test
-//        //search for the terms: and + manoa
-//        String searchText2 = "and + manoa";
-//
-//        System.out.println("\nSearching for: " + searchText2);
-//        for (Posting posting : query.parseQuery(searchText2).getPostings(index)) {
-//            System.out.print("Document ID: " + posting.getDocumentId() + " Positions: ");
-//            for (Integer positions : posting.getPositions()) {
-//                System.out.print(positions + ", ");
-//            }
-//            System.out.println();
-//        }
+        //AND query test
+        //search for the terms: bird AND seed AND science
+        String searchText1 = "bird seed science";
+
+        System.out.println("Searching for: " + searchText1);
+        for (Posting posting : query.parseQuery(searchText1).getPostings(index)) {
+            System.out.print("Document ID: " + posting.getDocumentId() + " Positions: ");
+            for (Integer positions : posting.getPositions()) {
+                System.out.print(positions + ", ");
+            }
+            System.out.println();
+        }
+
+        //OR query test
+        //search for the terms: hawaii OR manoa OR goose
+        String searchText2 = "hawaii + manoa + goose";
+
+        System.out.println("\nSearching for: " + searchText2);
+        for (Posting posting : query.parseQuery(searchText2).getPostings(index)) {
+            System.out.print("Document ID: " + posting.getDocumentId() + " Positions: ");
+            for (Integer positions : posting.getPositions()) {
+                System.out.print(positions + ", ");
+            }
+            System.out.println();
+        }
 
         //PHRASE literal test
         //search for the phrase: "about a"
@@ -90,6 +90,7 @@ public class Indexer {
 //            for (Integer positions : posting.getPositions()) {
 //                System.out.print(positions + ", ");
 //            }
+//            //failed test for getting content
 //            System.out.println("\nContent" + corpus.getDocument(posting.getDocumentId()).toString());
 //        }
 //
