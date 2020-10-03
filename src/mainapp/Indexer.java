@@ -20,91 +20,38 @@ public class Indexer {
 
         DocumentCorpus corpus = requestDirectory();//collect all documents from a directory
 
-        Iterable<Document> docs = corpus.getDocuments();
-        for (Document doc : docs) {//print each document associated with its id
-            System.out.println(doc.getId() + ": " + doc.getTitle());
-        }
+        System.out.println("Starting to build index...");
 
+        //measure how long it takes to build the index
+        long startTime = System.nanoTime();
         Index index = indexCorpus(corpus);
+        long stopTime = System.nanoTime();
+        double indexSeconds = (double)(stopTime - startTime) / 1_000_000_000.0;
+        System.out.println("Done!\n");
+        System.out.println("Time to build index: " + indexSeconds + " seconds");
 
-        BooleanQueryParser query = new BooleanQueryParser();
-        System.out.println("\nTesting boolean parser:");
+        userQuery(corpus, index);
 
         //AND query test
         //search for the terms: bird AND seed AND science
         String searchText1 = "bird seed science";
 
-        System.out.println("Searching for: " + searchText1);
-        for (Posting posting : query.parseQuery(searchText1).getPostings(index)) {
-            System.out.print("Document ID: " + posting.getDocumentId() + " Positions: ");
-            for (Integer positions : posting.getPositions()) {
-                System.out.print(positions + ", ");
-            }
-            System.out.println();
-        }
-
         //OR query test
         //search for the terms: hawaii OR manoa OR goose
         String searchText2 = "hawaii + manoa + goose";
-
-        System.out.println("\nSearching for: " + searchText2);
-        for (Posting posting : query.parseQuery(searchText2).getPostings(index)) {
-            System.out.print("Document ID: " + posting.getDocumentId() + " Positions: ");
-            for (Integer positions : posting.getPositions()) {
-                System.out.print(positions + ", ");
-            }
-            System.out.println();
-        }
 
         //PHRASE literal test
         //search for the phrase: "about a"
         String searchText3 = "\"about a\"";//Phrase test "about a" is in ch 3 & 1 .txt files
 
-        System.out.println("\nSearching for: " + searchText3);
-        for (Posting posting : query.parseQuery(searchText3).getPostings(index)) {
-            System.out.print("Document ID: " + posting.getDocumentId() + " Positions: ");
-            for (Integer positions : posting.getPositions()) {
-                System.out.print(positions + ", ");
-            }
-            System.out.println();
-        }
-
         //PHRASE literal test
         //search for the phrase: "learn about the"
         String searchText4 = "\"learn about the\"";//Phrase test "learn about the" showed up 5 times for me
 
-        System.out.println("\nSearching for: " + searchText4);
-        for (Posting posting : query.parseQuery(searchText4).getPostings(index)) {
-            System.out.print("Document ID: " + posting.getDocumentId() + " Positions: ");
-            for (Integer positions : posting.getPositions()) {
-                System.out.print(positions + ", ");
-            }
-            System.out.println();
-        }
+        //TERM literal test
+        //search for the term: manoa
+        String searchText5 = "manoa";
 
-//        //search for the term: manoa
-//        System.out.println("\nSearching for: manoa");
-//        //basic test for the positional inverted index
-//        for (Posting posting : query.parseQuery("manoa").getPostings(index)) {
-//            System.out.print("Document ID: " + posting.getDocumentId() + " Positions: ");
-//            for (Integer positions : posting.getPositions()) {
-//                System.out.print(positions + ", ");
-//            }
-//            //failed test for getting content
-//            System.out.println("\nContent" + corpus.getDocument(posting.getDocumentId()).toString());
-//        }
-//
-//        //search for the term: and
-//        System.out.println("\nSearching for: and");
-//        //basic test for the positional inverted index
-//        for (Posting posting : query.parseQuery("and").getPostings(index)) {
-//            System.out.print("Document ID: " + posting.getDocumentId() + " Positions: ");
-//            for (Integer positions : posting.getPositions()) {
-//                System.out.print(positions + ", ");
-//            }
-//            System.out.println();
-//        }
-//
 //        //vocab in the index test
 //        System.out.println("\n" + index.getVocabulary());
 
@@ -166,9 +113,86 @@ public class Indexer {
         //generate corpus based on files found at the directory
         corpus = DirectoryCorpus.loadTextDirectory(currentWorkingPath);
 
-        in.close();
-
         return corpus;
+
+    }
+
+    private static void userQuery(DocumentCorpus corpus, Index index) {
+
+        //collect input from the user for a query
+        try (Scanner in = new Scanner(System.in)) {
+
+            BooleanQueryParser query = new BooleanQueryParser();
+            String input = "";
+
+            //repeatedly ask the user for a query
+            while(!input.equals(":q")) {
+
+                System.out.print("\nEnter a valid query (:q to end): ");
+                input = in.nextLine();
+
+                if (input.charAt(0) == ':') {//determine if the query is a special query
+
+                    //TODO: finish special query actions
+                    if (input.length() == 2 && input.substring(1, 2).equals("q")) {
+                        System.out.println("\nEnding program...");
+                    } else if (input.length() == 5 && input.substring(1, 5).equals("stem")) {
+                        System.out.println("Stem it bro");
+                    } else if (input.length() == 6 && input.substring(1, 6).equals("index")) {
+                        System.out.println("restart the index");
+                    } else if (input.length() == 6 && input.substring(1, 6).equals("vocab")) {
+                        System.out.println("print out the vocab");
+                    } else {
+                        System.out.println("\nThis is not a valid special query...");
+                    }
+
+                } else {//handle typical term query
+
+                    //collect postings of the query
+                    List<Posting> postings = query.parseQuery(input).getPostings(index);
+
+                    if (postings == null) {//term not found
+                        System.out.println("No such term found...");
+                    } else {//the term is in the index
+                        //print each document associated with the query
+                        for (Posting posting : postings) {
+                            System.out.printf("Document ID: %-9s Title: %s", posting.getDocumentId(),
+                                    corpus.getDocument(posting.getDocumentId()).getTitle());
+                            System.out.println();
+                        }
+                        System.out.println("\nTotal Documents: " + postings.size());//print total documents found
+
+                        int requestId = 0;//handle user request to view document content
+                        while (requestId != -1) {//determine if the user wants to view a document
+                            System.out.print("Enter a Document ID to view that documents' content " +
+                                    "(-1 for another query): ");
+                            input = in.nextLine();
+                            try {//convert user input into a valid integer
+                                requestId = Integer.parseInt(input);
+                                //if the id is valid give the content
+                                if (requestId >= 0 && requestId < corpus.getCorpusSize()) {
+                                    System.out.println("Title: " + corpus.getDocument(requestId).getTitle());
+                                    System.out.println("Content: " + corpus.getDocument(requestId).getContent());
+                                }
+
+                                //user entered id is not valid
+                            } catch (NumberFormatException nfe) {
+                                System.out.println("Invalid Document Id, going back to query\n");
+                                requestId = -1;
+                            }
+
+                        }
+
+                        input = "";
+                    }
+
+                }
+
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
     }
 
