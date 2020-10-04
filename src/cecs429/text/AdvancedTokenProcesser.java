@@ -58,18 +58,33 @@ public class AdvancedTokenProcesser implements TokenProcessor{
 
 
         // Stem token using implementation of the Porter2stemmer
-        englishStemmer stemmer = new englishStemmer();
         for(int i = 0; i < result.size(); i++){
-            stemmer.setCurrent(result.get(i));
-            if(stemmer.stem()){
-                result.set(i, stemmer.getCurrent());
-            }
+            result.set(i, stemToken(result.get(i)));
         }
 
         return result;
     }
 
-    public static boolean isAlphanumeric(char c) {
+    /**
+     * stem a single token using the Porter2stemmer method
+     * @param token the token to be stemmed
+     * @return the stemmed token
+     */
+    public static String stemToken(String token) {
+
+        String stemmedTerm = "";
+
+        englishStemmer stemmer = new englishStemmer();
+        stemmer.setCurrent(token);
+        if (stemmer.stem()) {
+            stemmedTerm = stemmer.getCurrent();
+        }
+
+        return stemmedTerm;
+
+    }
+
+    private static boolean isAlphanumeric(char c) {
         //checks chars exist within the range of letters and numbers via ascii
         if (c < 0x30 || (c >= 0x3a && c <= 0x40) || (c > 0x5a && c <= 0x60) || c > 0x7a){
             return false;

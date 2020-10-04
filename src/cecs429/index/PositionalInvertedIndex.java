@@ -13,7 +13,7 @@ public class PositionalInvertedIndex implements Index {
 	 * create and empty index
 	 */
 	public PositionalInvertedIndex() {
-		index = new HashMap<String, List<Posting>>();
+		index = new HashMap<>();
 	}
 
 	/**
@@ -69,10 +69,6 @@ public class PositionalInvertedIndex implements Index {
 		return this.index.get(token);
 	}
 
-	public int size() {
-		return index.size();
-	}
-
 	/**
 	 * Create a new posting list object for the index
 	 * @param id document id associated with the new posting
@@ -80,7 +76,7 @@ public class PositionalInvertedIndex implements Index {
 	 * @return a new posting list object
 	 */
 	private List<Posting> createPosting(int id, int position) {
-		List<Posting> postings = new ArrayList<Posting>();
+		List<Posting> postings = new ArrayList<>();
 		Posting posting = new Posting(id, position);//create a new posting
 		postings.add(posting);
 		return postings;
