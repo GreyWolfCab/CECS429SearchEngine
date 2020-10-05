@@ -1,6 +1,9 @@
 package mainapp;
 
+import cecs429.documents.DirectoryCorpus;
+import cecs429.documents.Document;
 import cecs429.documents.DocumentCorpus;
+import cecs429.documents.TextFileDocument;
 import cecs429.index.Index;
 import cecs429.index.KGramIndex;
 
@@ -10,6 +13,8 @@ import spark.ModelAndView;
 import spark.Spark;
 import spark.template.thymeleaf.ThymeleafTemplateEngine;
 
+import java.io.IOException;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -60,10 +65,50 @@ public class WebUI {
                     "    </tr>\n" +
                          postings.get().toString() +
                     "</table>" +
-                    "Open Doc ID: <input id=\"open-input\"type=\"text\" name=\"open-doc\" value=\"\" autocomplete=\"off\"/>" +
-                    "<a id=\"open-button\" >open</a>" +
-                    "</div>" ;
+                    "<div>Total Documents: " + postings.get().size() + "</div></div>" ;
         });
+
+        Spark.post("/document", (request, response) -> {
+            String docid = request.queryParams("docValue");
+            int id = Integer.parseInt(docid);
+            DocumentCorpus corpus = indexer.requestDirectory(dir.get());
+            Document doc = corpus.getDocument(id);
+            Reader reader = doc.getContent();
+            StringBuilder content = new StringBuilder();
+            int readerCharValue;
+            try {
+                while ((readerCharValue = reader.read()) != -1) {//read each char from the reader
+                    content.append((char)readerCharValue);//convert the value to a char, add to builder
+                }
+            } catch (IOException ioe) {
+                ioe.printStackTrace();
+            }
+            System.out.println(content.toString());
+
+            return "<div> hi </div>";
+
+        });
+
+//        Spark.post("/doc", (request, response) -> {
+//            String clicked_id = request.queryParams("docID");
+//
+//            int id = Integer.parseInt(clicked_id);
+//            DocumentCorpus corpus = indexer.requestDirectory(dir.get());//collect all documents from a directory
+//            String content = indexer.getDocContents(corpus,id);
+//            Reader reader = doc.getContent();
+//            StringBuilder content = new StringBuilder();
+//            int readerCharValue;
+//            try {
+//                while ((readerCharValue = reader.read()) != -1) {//read each char from the reader
+//                    content.append((char)readerCharValue);//convert the value to a char, add to builder
+//                }
+//            } catch (IOException ioe) {
+//                ioe.printStackTrace();
+//            }
+//            System.out.println(content.toString());
+//
+//            return "<div>" + clicked_id + "</div>";
+//        });
 
         Spark.post("/squery", (request, response) -> {
 //            index.set(indexer.timeIndexBuild(corpus, kGramIndex));

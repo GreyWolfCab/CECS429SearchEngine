@@ -16,7 +16,7 @@ import java.util.function.Predicate;
  */
 public class DirectoryCorpus implements DocumentCorpus {
 	// The map from document ID to document.
-	private HashMap<Integer, Document> mDocuments;
+	public HashMap<Integer, Document> mDocuments;
 	private int nextId = 0;
 	
 	// Maintains a map of registered file types that the corpus knows how to load.

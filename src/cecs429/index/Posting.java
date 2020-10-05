@@ -40,7 +40,7 @@ public class Posting {
 		return
 				"    <tr>\n" +
 				"        <td>"+mDocumentId+"</td>\n" +
-				"        <td><button id=\""+mDocumentId+"\">"+mDocumentTitle+"</button></td>\n" +
+				"        <td><button id=\"" + mDocumentId + "\" onClick=\"docClicked(this.id)\" >"+mDocumentTitle+"</button></td>\n" +
 				"        <td>"+positions+"</td>\n" +
 				"    </tr>\n";
 	}

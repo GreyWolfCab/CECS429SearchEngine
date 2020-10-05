@@ -21,6 +21,11 @@
             <a id="searchButton" >search</a>
         </div>
         <div id="search-contents" style=" font-size: 12px;height: 600px; overflow-x: scroll;"></div>
+        <div>
+            Open Doc ID: <input id="open-input" type="text" name="open-doc" value="" autocomplete="off"/>
+            <a id="open-button" >open</a>
+        </div>
+
     </div>
 
 </div>
@@ -49,20 +54,31 @@
         })
     })
 
+    // function docClicked(id)
+    // {
+    //     $.post("/doc", {docID: id}, function(result){
+    //         $(result).appendTo($("#search-contents"));
+    //     });
+    //
+    // };
+
     $(function() {
         $("#open-button").on("click", function(evt) {
-            let docValue = document.getElementById("doc-input").value;
+            let docValue = document.getElementById("open-input").value;
             //console.log(queryValue);
-            if(queryValue == ""){
-                alert("query cannot be empty")
+            if(docValue == ""){
+                alert("open cannot be empty")
             } else {
-                $.post("/search", {queryValue: queryValue}, function(result){
+                $.post("/document", {docValue: docValue}, function(result){
                     $(result).appendTo($("#search-contents"));
                 });
             }
 
         })
     })
+
+
+
 
 
 </script>
