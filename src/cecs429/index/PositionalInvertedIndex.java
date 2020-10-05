@@ -22,7 +22,7 @@ public class PositionalInvertedIndex implements Index {
 	 * @param id document id the term belongs to
 	 * @param position position within the document the term came from
 	 */
-	public void addTerm(List<String> terms, int id, int position) {
+	public void addTerm(List<String> terms, int id, int position, String title) {
 
 		for (String term : terms) {//iterate through every term given
 
@@ -31,7 +31,7 @@ public class PositionalInvertedIndex implements Index {
 			//postings don't exist for term
 			if (postings == null) {
 
-				postings = createPosting(id, position);//create a new posting with docid, position
+				postings = createPosting(id, position, title);//create a new posting with docid, position
 				this.index.put(term, postings);//add new posting and term to index
 
 			} else {//build from existing posting list
@@ -40,7 +40,7 @@ public class PositionalInvertedIndex implements Index {
 				int prevDocId = postings.get(postings.size()-1).getDocumentId();
 				//this document hasn't been recorded yet
 				if (id > prevDocId) {
-					Posting posting = new Posting(id, position);//add the new document id to the list
+					Posting posting = new Posting(id, position, title);//add the new document id to the list
 					postings.add(posting);//update postings with new posting
 				//this document exists, add new position
 				} else if (id == prevDocId) {
@@ -75,9 +75,9 @@ public class PositionalInvertedIndex implements Index {
 	 * @param position term position to store in the new posting
 	 * @return a new posting list object
 	 */
-	private List<Posting> createPosting(int id, int position) {
+	private List<Posting> createPosting(int id, int position,String title) {
 		List<Posting> postings = new ArrayList<>();
-		Posting posting = new Posting(id, position);//create a new posting
+		Posting posting = new Posting(id, position,title);//create a new posting
 		postings.add(posting);
 		return postings;
 	}

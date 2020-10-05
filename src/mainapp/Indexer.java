@@ -12,6 +12,7 @@ import cecs429.text.AdvancedTokenProcesser;
 import cecs429.text.EnglishTokenStream;
 
 import java.nio.file.*;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 import java.io.IOException;
@@ -22,8 +23,10 @@ import static spark.Spark.*;
 public class Indexer {
 
     public final static int K_GRAM_LIMIT = 3;
+    public double timeToBuildIndex = 0.00;
+    public Index index;
 
-    public static void main(String[] args) {
+    public void main(String[] args) {
 
         runMainApp();
 
@@ -52,7 +55,7 @@ public class Indexer {
     /**
      *
      */
-    private static void runMainApp() {
+    private void runMainApp() {
 
         DocumentCorpus corpus = requestDirectory("");//collect all documents from a directory
 
@@ -62,8 +65,15 @@ public class Indexer {
         userQuery(corpus, index, kGramIndex);//handle user input
 
     }
+    public void runIndexer(String path) {
+        DocumentCorpus corpus = requestDirectory(path);//collect all documents from a directory
+        System.out.println("Indexing: " + path);
+        KGramIndex kGramIndex = new KGramIndex();//build k-gram from 1 to limit sized grams
+        index = timeIndexBuild(corpus, kGramIndex);//build the index and print how long it takes
 
-    private static Index indexCorpus(DocumentCorpus corpus, KGramIndex kGramIndex) {
+    }
+
+    public static Index indexCorpus(DocumentCorpus corpus, KGramIndex kGramIndex) {
 
         PositionalInvertedIndex index = new PositionalInvertedIndex();//create positional index
         AdvancedTokenProcesser processor = new AdvancedTokenProcesser();//create token processor
@@ -86,7 +96,7 @@ public class Indexer {
                     kGramIndex.addGram(K_GRAM_LIMIT, words.get(i));//build k-gram off of un-stemmed tokens
                     words.set(i, AdvancedTokenProcesser.stemToken(words.get(i)));
                 }
-                index.addTerm(words, docs.getId(), wordPosition);//add word data to index
+                index.addTerm(words, docs.getId(), wordPosition, docs.getTitle());//add word data to index
                 wordPosition++;//increment word position
 
             }
@@ -101,7 +111,7 @@ public class Indexer {
      * incorporates directory-selection and loads whatever json files found there into the corpus
      * @return a corpus of all documents found at the user specified directory
      */
-    private static DocumentCorpus requestDirectory(String path) {
+    public static DocumentCorpus requestDirectory(String path) {
 
         DocumentCorpus corpus;
 
@@ -128,7 +138,44 @@ public class Indexer {
 
     }
 
-    private static void userQuery(DocumentCorpus corpus, Index index, KGramIndex kGramIndex) {
+
+    public String userSQueryStem (String queryInput){
+        String stemmedTerm = AdvancedTokenProcesser.stemToken(queryInput.substring(6));
+        return stemmedTerm;
+    }
+
+    public Index userSQueryIndex (DocumentCorpus corpus, Index index, KGramIndex kGramIndex, String queryInput) {
+        corpus = requestDirectory(queryInput.substring(7));//collect all documents from a directory
+        kGramIndex = new KGramIndex();
+        index = timeIndexBuild(corpus, kGramIndex);
+        return index;
+    }
+
+    public List<String> userSQueryVocab () {
+        return index.getVocabulary();
+    }
+
+    public List<Posting> userQueryInput(DocumentCorpus corpus, Index index, String queryInput) {
+        BooleanQueryParser query = new BooleanQueryParser();
+        List<Posting> postings = query.parseQuery(queryInput).getPostings(index);
+
+        if (postings == null) {//term not found
+            System.out.println("No such term found...");
+        } else {//the term is in the index
+            //print each document associated with the query
+            for (Posting posting : postings) {
+                System.out.printf("Document ID: %-9s Title: %s", posting.getDocumentId(),
+                        corpus.getDocument(posting.getDocumentId()).getTitle());
+                System.out.println();
+            }
+            System.out.println("\nTotal Documents: " + postings.size());//print total documents found
+
+            queryInput = "";
+        }
+        return postings;
+    }
+
+    private void userQuery(DocumentCorpus corpus, Index index, KGramIndex kGramIndex) {
 
         //collect input from the user for a query
         try (Scanner in = new Scanner(System.in)) {
@@ -260,9 +307,8 @@ public class Indexer {
      * @param corpus the corpus to build an index from
      * @return the completed index
      */
-    private static Index timeIndexBuild(DocumentCorpus corpus, KGramIndex kGramIndex) {
+    public Index timeIndexBuild(DocumentCorpus corpus, KGramIndex kGramIndex) {
 
-        Index index;
 
         System.out.println("Starting to build index...");
 
@@ -273,12 +319,12 @@ public class Indexer {
         double indexSeconds = (double)(stopTime - startTime) / 1_000_000_000.0;
         System.out.println("Done!\n");
         System.out.println("Time to build index: " + indexSeconds + " seconds");
-
+        this.setTimeToBuildIndex(indexSeconds);
         return index;
 
     }
 
-    private static KGramIndex buildKGramIndex(int kGramLimit, Index index) {
+    public static KGramIndex buildKGramIndex(int kGramLimit, Index index) {
 
         KGramIndex kGramIndex = new KGramIndex();
 
@@ -289,5 +335,14 @@ public class Indexer {
         return kGramIndex;
 
     }
+
+    public double getTimeToBuildIndex() {
+        return timeToBuildIndex;
+    }
+
+    public void setTimeToBuildIndex(double timeToBuildIndex) {
+        this.timeToBuildIndex = timeToBuildIndex;
+    }
+
 
 }

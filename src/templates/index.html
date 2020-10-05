@@ -8,15 +8,89 @@
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
 
-    <title>Hello, world!</title>
+    <title>Search Engine</title>
 </head>
 <body>
-<h1>Hello, world!</h1>
+
+<div id="maindiv" style="position: fixed; top: 10px; left: 10px; overflow-x:scroll; height: 85%; width:50%; ">
+    <div id="dir">
+        <p>Enter Directory of Corpus to Index:</p>
+        <input id="directoryInput"type="text" name="button1" value="" autocomplete="off"/>
+
+        <a id="submitButton" >SUBMIT</a>
+    </div>
+</div>
+
+<div style="position: fixed; bottom: 10px; right: 10px;">
+    <button id="startSearchButton" class="btn btn-primary">Start Search</button>
+</div>
+
+<div id="SQueries" style="display: none; position: fixed; bottom: 10px; left: 10px;">
+    <p>Special Queries:</p>
+    <input id="squeryInput"type="text" name="squery" value="" autocomplete="off"/>
+    <a id="squeryButton">SUBMIT</a>
+
+</div>
+
+<iframe id="searchFrame" style="display: none; position: fixed; bottom: 20px; right: 10px; width: 500px; height: 90%; border: solid 1px #333333; " src="/search"></iframe>
 
 <!-- Optional JavaScript -->
 <!-- jQuery first, then Popper.js, then Bootstrap JS -->
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
+
+
+<script>
+
+
+    $(function() {
+        $("#startSearchButton").on("click", function(evt){
+            $("#startSearchButton").hide();
+            $("#searchFrame").show();
+        })
+    })
+
+    $(function() {
+        $("#submitButton").on("click", function(evt){
+            let directoryValue = document.getElementById("directoryInput").value;
+            //console.log(directoryValue);
+            if(directoryValue == "") {
+                alert("Directory cannot be empty");
+            } else {
+                $.post("/", {directoryValue: directoryValue}, function(result){
+                    $(result).appendTo($("#maindiv"));
+                });
+                $("#submitButton").hide();
+                $("#dir").hide();
+                $("#SQueries").show();
+            }
+        });
+    })
+
+    $(function() {
+        $("#squeryButton").on("click", function(evt){
+            let squeryValue = document.getElementById("squeryInput").value;
+            console.log(squeryValue);
+            if(squeryValue.charAt(0) === ':') {
+                $.post("/squery", {squeryValue: squeryValue}, function(result){
+                    $(result).appendTo($("#maindiv"));
+                });
+            } else {
+                alert("special query must start with :")
+            }
+            });
+
+
+
+
+        });
+
+
+
+
+</script>
+
+
 </body>
 </html>

@@ -123,7 +123,7 @@ public class PhraseLiteral implements Query {
 			//check the different terms are in sequence
 			//terms are in sequence
 			if (firstPosting.getPositions().get(a) == (secondPosting.getPositions().get(b) - distance)) {
-				postings.add(new Posting(firstPosting.getDocumentId(), firstPosting.getPositions().get(a)));
+				postings.add(new Posting(firstPosting.getDocumentId(), firstPosting.getPositions().get(a), firstPosting.getDocumentTitle()));
 				a++;
 				b++;
 				//first term is before the second
