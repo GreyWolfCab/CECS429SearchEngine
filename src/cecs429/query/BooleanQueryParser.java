@@ -189,59 +189,12 @@ public class BooleanQueryParser {
 				new TermLiteral(subquery.substring(startIndex, startIndex + lengthOut)));
 
 		/*
-		TODO:
+		Done:
 		Instead of assuming that we only have single-term literals, modify this method so it will create a PhraseLiteral
 		object if the first non-space character you find is a double-quote ("). In this case, the literal is not ended
 		by the next space character, but by the next double-quote character.
 		 */
 
-//		int subLength = subquery.length();
-//		int nextSpace = 0;
-//		int lengthOut;
-//		boolean isPhraseLiteral;
-//
-//		// Skip past white space.
-//		while (subquery.charAt(startIndex) == ' ') {
-//			++startIndex;
-//		}
-//
-//		// Check whether the the next Literal is a Phrase or not
-//		if (subquery.charAt(startIndex) == '\"'){
-//			//System.out.println("phrase literal");
-//			// Locate the next " to find the end of this Phrase literal.
-//			nextSpace = subquery.indexOf('\"', startIndex + 1) + 1;
-//			isPhraseLiteral = true;
-//		} else {
-//			//System.out.println("reg literal");
-//			// Locate the next space to find the end of this literal.
-//			nextSpace = subquery.indexOf(' ', startIndex);
-//			isPhraseLiteral = false;
-//		}
-//
-//		if (nextSpace < 0) {
-//			// No more literals in this subquery.
-//			lengthOut = subLength - startIndex;
-//		}
-//		else {
-//			lengthOut = nextSpace - startIndex;
-//		}
-//
-//		// This is a term literal containing a single term.
-//		if (isPhraseLiteral) {
-//			//return new PhraseLiteral();
-//		} else {
-//			return new Literal(
-//					new StringBounds(startIndex, lengthOut),
-//					new TermLiteral(subquery.substring(startIndex, startIndex + lengthOut)));
-//		}
-//
-//
-//		/*
-//		TODO:
-//		Instead of assuming that we only have single-term literals, modify this method so it will create a PhraseLiteral
-//		object if the first non-space character you find is a double-quote ("). In this case, the literal is not ended
-//		by the next space character, but by the next double-quote character.
-//		 */
-//		return null;
 	}
+
 }
