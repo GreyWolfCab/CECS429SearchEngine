@@ -181,7 +181,14 @@ public class BooleanQueryParser {
 			lengthOut = nextSpace - startIndex;
 		}
 
-
+		//locate a wildcard within the term
+		int wildCard = subquery.substring(startIndex, startIndex + lengthOut).indexOf('*');
+		if (wildCard >= 0) {
+			// This is a term literal containing a single term.
+			return new Literal(
+					new StringBounds(startIndex, lengthOut),
+					new WildcardLiteral(subquery.substring(startIndex, startIndex + lengthOut)));
+		}
 
 		// This is a term literal containing a single term.
 		return new Literal(

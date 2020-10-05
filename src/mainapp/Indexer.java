@@ -4,6 +4,7 @@ import cecs429.documents.DirectoryCorpus;
 import cecs429.documents.Document;
 import cecs429.documents.DocumentCorpus;
 import cecs429.index.Index;
+import cecs429.index.KGramIndex;
 import cecs429.index.PositionalInvertedIndex;
 import cecs429.index.Posting;
 import cecs429.query.BooleanQueryParser;
@@ -19,6 +20,8 @@ import static spark.Spark.*;
 
 
 public class Indexer {
+
+    public final static int K_GRAM_LIMIT = 3;
 
     public static void main(String[] args) {
 
@@ -55,7 +58,9 @@ public class Indexer {
 
         Index index = timeIndexBuild(corpus);//build the index and print how long it takes
 
-        userQuery(corpus, index);//handle user input
+        KGramIndex kGramIndex = buildKGramIndex(K_GRAM_LIMIT, index);//build k-gram from 1 to limit sized grams
+
+        userQuery(corpus, index, kGramIndex);//handle user input
 
     }
 
@@ -120,7 +125,7 @@ public class Indexer {
 
     }
 
-    private static void userQuery(DocumentCorpus corpus, Index index) {
+    private static void userQuery(DocumentCorpus corpus, Index index, KGramIndex kGramIndex) {
 
         //collect input from the user for a query
         try (Scanner in = new Scanner(System.in)) {
@@ -266,6 +271,18 @@ public class Indexer {
         System.out.println("Time to build index: " + indexSeconds + " seconds");
 
         return index;
+
+    }
+
+    private static KGramIndex buildKGramIndex(int kGramLimit, Index index) {
+
+        KGramIndex kGramIndex = new KGramIndex();
+
+        for (String term : index.getVocabulary()) {
+            kGramIndex.addGram(3, term);
+        }
+
+        return kGramIndex;
 
     }
 
