@@ -56,15 +56,14 @@ public class Indexer {
 
         DocumentCorpus corpus = requestDirectory("");//collect all documents from a directory
 
-        Index index = timeIndexBuild(corpus);//build the index and print how long it takes
-
-        KGramIndex kGramIndex = buildKGramIndex(K_GRAM_LIMIT, index);//build k-gram from 1 to limit sized grams
+        KGramIndex kGramIndex = new KGramIndex();//build k-gram from 1 to limit sized grams
+        Index index = timeIndexBuild(corpus, kGramIndex);//build the index and print how long it takes
 
         userQuery(corpus, index, kGramIndex);//handle user input
 
     }
 
-    private static Index indexCorpus(DocumentCorpus corpus) {
+    private static Index indexCorpus(DocumentCorpus corpus, KGramIndex kGramIndex) {
 
         PositionalInvertedIndex index = new PositionalInvertedIndex();//create positional index
         AdvancedTokenProcesser processor = new AdvancedTokenProcesser();//create token processor
@@ -82,8 +81,12 @@ public class Indexer {
             // Iterate through the tokens in the document, processing them using a BasicTokenProcessor,
             for (String token : tokens) {
 
-                List<String> word = processor.processToken(token);//convert a token to indexable terms
-                index.addTerm(word, docs.getId(), wordPosition);//add word data to index
+                List<String> words = processor.processToken(token);//convert a token to indexable terms
+                for (int i = 0; i < words.size(); i++) {
+                    kGramIndex.addGram(K_GRAM_LIMIT, words.get(i));//build k-gram off of un-stemmed tokens
+                    words.set(i, AdvancedTokenProcesser.stemToken(words.get(i)));
+                }
+                index.addTerm(words, docs.getId(), wordPosition);//add word data to index
                 wordPosition++;//increment word position
 
             }
@@ -153,7 +156,8 @@ public class Indexer {
                     } else if (input.length() >= 6 && input.substring(1, 6).equals("index")) {
                         System.out.println("Resetting the directory...");
                         corpus = requestDirectory(input.substring(7));//collect all documents from a directory
-                        index = timeIndexBuild(corpus);
+                        kGramIndex = new KGramIndex();
+                        index = timeIndexBuild(corpus, kGramIndex);
                         //print the first 1000 terms in the vocabulary
                     } else if (input.length() == 6 && input.substring(1, 6).equals("vocab")) {
                         printIndexVocab(index);
@@ -256,7 +260,7 @@ public class Indexer {
      * @param corpus the corpus to build an index from
      * @return the completed index
      */
-    private static Index timeIndexBuild(DocumentCorpus corpus) {
+    private static Index timeIndexBuild(DocumentCorpus corpus, KGramIndex kGramIndex) {
 
         Index index;
 
@@ -264,7 +268,7 @@ public class Indexer {
 
         //measure how long it takes to build the index
         long startTime = System.nanoTime();
-        index = indexCorpus(corpus);
+        index = indexCorpus(corpus, kGramIndex);
         long stopTime = System.nanoTime();
         double indexSeconds = (double)(stopTime - startTime) / 1_000_000_000.0;
         System.out.println("Done!\n");
