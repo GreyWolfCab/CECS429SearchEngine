@@ -15,7 +15,6 @@ import java.io.Reader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.joining;
 
@@ -53,11 +52,10 @@ public class WebUI {
         });
 
         // posts query values based on query inputs from client (outputs as html table)
+
         Spark.post("/search", (request, response) -> {
             String queryValue = request.queryParams("queryValue");
-
             postings = (ArrayList<Posting>) indexer.userQueryInput(corpus, index, queryValue);
-
             return "<div><b>Query: </b>" + queryValue +
                     "<table id=\"document-table\" style=\"width:100%\">\n" +
                     "    <tr>\n" +
@@ -71,6 +69,7 @@ public class WebUI {
         });
 
         // posts document contents as a div
+
         Spark.post("/document", (request, response) -> {
             String docid = request.queryParams("docValue");
             int id = Integer.parseInt(docid);
@@ -91,6 +90,7 @@ public class WebUI {
         });
 
         // handles special queries from client (posts as a div to client)
+
         Spark.post("/squery", (request, response) -> {
             String squeryValue = request.queryParams("squeryValue");
             String stemmedTerm;
@@ -110,7 +110,7 @@ public class WebUI {
             } else if (squeryValue.length() == 6 && squeryValue.substring(1, 6).equals("vocab")) {
                 List<String> vocabList = indexer.userSQueryVocab();
                 List<String> subVocab = null;
-                if (vocabList.size() >= 1000) { subVocab = vocabList.subList(0, 1000 - 1); }
+                if (vocabList.size() >= 1000) { subVocab = vocabList.subList(0, 999); }
                 else { subVocab = vocabList.subList(0, vocabList.size() - 1); }
                 String formattedVocabList = subVocab.stream().map(item -> "" + item + "</br>").collect(joining(" "));
                 return "<div style=\"font-size: 12px;\">"+ formattedVocabList +" </br> <b style=\"font-size: 15px;\"># of vocab terms: " + vocabList.size() + "<b></div></br>";
