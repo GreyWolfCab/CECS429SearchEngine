@@ -72,7 +72,7 @@ public class WebUI {
             String docid = request.queryParams("docValue");
             int id = Integer.parseInt(docid);
             DocumentCorpus corpus = indexer.requestDirectory(dir.get());
-            System.out.println(corpus.getDocuments());
+            corpus.getDocuments();
             Document doc = corpus.getDocument(id);
             Reader reader = doc.getContent();
             StringBuilder content = new StringBuilder();
@@ -85,7 +85,7 @@ public class WebUI {
                 ioe.printStackTrace();
             }
 
-            return "<div> " + content.toString() + " </div>";
+            return "</br><div style=\"\"> " + content.toString() + " </div>";
 
         });
 
@@ -118,19 +118,19 @@ public class WebUI {
                 stemmedTerm = indexer.userSQueryStem(squeryValue);
                 System.out.printf("%s stemmed to: %s", squeryValue.substring(6), stemmedTerm);
                 System.out.println();
-                return "<div style=\"font-size: 10px;\">"+ squeryValue + " stemmed to: " + stemmedTerm + "</div>";
+                return "<div style=\"font-size: 12px;\">"+ squeryValue + " stemmed to: " + stemmedTerm + "</div>";
                 //build a new index from the given directory
             } else if (squeryValue.length() >= 6 && squeryValue.substring(1, 6).equals("index")) {
                 System.out.println("Resetting the directory...");
                 dir.set(squeryValue.substring(7));
                 indexer.runIndexer(squeryValue.substring(7));
-                return "<div style=\"font-size: 10px\">New Files Indexed From: " + dir.get() + "</div> <div style=\"font-size: 10px\">Time to Index:"+ indexer.getTimeToBuildIndex() +  " seconds</div>";
+                return "<div style=\"font-size: 12px\">New Files Indexed From: " + dir.get() + "</div> <div style=\"font-size: 10px\">Time to Index:"+ indexer.getTimeToBuildIndex() +  " seconds</div>";
                 //print the first 1000 terms in the vocabulary
             } else if (squeryValue.length() == 6 && squeryValue.substring(1, 6).equals("vocab")) {
                 List<String> vocabList = indexer.userSQueryVocab();
-                return "<div style=\"font-size: 8px;\">"+ vocabList +"</div>";
+                return "<div style=\"font-size: 12px;\">"+ vocabList +" </br style=\"font-size: 15;\"># of vocab terms: " + vocabList.size() + "</div>";
             } else {
-                return "<div style=\"font-size: 10px;\">Not Valid Special Query</div>";
+                return "<div style=\"font-size: 12px;\">Not Valid Special Query</div>";
             }
         });
 

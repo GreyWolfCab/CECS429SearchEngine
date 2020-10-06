@@ -14,25 +14,16 @@
 
 <div class="m-4" style="top: 10px; left: 10px;">
     <div style="position: absolute">
-        <div>Enter Search here</div>
         <div id="search">
+            Query:
             <input id="queryInput"type="text" name="search-txt" value="" autocomplete="off"/>
 
-            <a id="searchButton" >search</a>
+            <a id="searchButton" >SEARCH</a>
         </div>
-        <div id="search-contents" style=" font-size: 12px;height: 600px; overflow-x: scroll;"></div>
-        <div>
-            Open Doc ID: <input id="open-input" type="text" name="open-doc" value="" autocomplete="off"/>
-            <a id="open-button" >open</a>
-        </div>
-
+        <div id="search-contents" style=" font-size: 12px;height: 750px; overflow-x: scroll;"></div>
     </div>
-
 </div>
 
-
-
-<!-- Optional JavaScript -->
 <!-- jQuery first, then Popper.js, then Bootstrap JS -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
@@ -42,45 +33,21 @@
     $(function() {
         $("#searchButton").on("click", function(evt) {
             let queryValue = document.getElementById("queryInput").value;
-            //console.log(queryValue);
             if(queryValue == ""){
                 alert("query cannot be empty")
             } else {
                 $.post("/search", {queryValue: queryValue}, function(result){
-                    $(result).appendTo($("#search-contents"));
+                    $(result).prependTo($("#search-contents"));
                 });
             }
-
         })
     })
 
-    // function docClicked(id)
-    // {
-    //     $.post("/doc", {docID: id}, function(result){
-    //         $(result).appendTo($("#search-contents"));
-    //     });
-    //
-    // };
-
-    $(function() {
-        $("#open-button").on("click", function(evt) {
-            let docValue = document.getElementById("open-input").value;
-            //console.log(queryValue);
-            if(docValue == ""){
-                alert("open cannot be empty")
-            } else {
-                $.post("/document", {docValue: docValue}, function(result){
-                    $(result).appendTo($("#search-contents"));
-                });
-            }
-
-        })
-    })
-
-
-
-
-
+    function docClicked(id) {
+        $.post("/document", {docValue: id}, function(result){
+            $(result).prependTo($("#search-contents"));
+        });
+    };
 </script>
 
 </body>

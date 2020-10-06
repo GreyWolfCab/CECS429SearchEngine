@@ -12,7 +12,7 @@
 </head>
 <body>
 
-<div id="maindiv" style="position: fixed; top: 10px; left: 10px; overflow-x:scroll; height: 85%; width:50%; ">
+<div id="maindiv" style="position: fixed; top: 10px; left: 10px; overflow-x:scroll; height: 85%; width:45%; ">
     <div id="dir">
         <p>Enter Directory of Corpus to Index:</p>
         <input id="directoryInput"type="text" name="button1" value="" autocomplete="off"/>
@@ -32,7 +32,7 @@
 
 </div>
 
-<iframe id="searchFrame" style="display: none; position: fixed; bottom: 20px; right: 10px; width: 500px; height: 90%; border: solid 1px #333333; " src="/search"></iframe>
+<iframe id="searchFrame" style="display: none; position: fixed; bottom: 20px; right: 10px; width: 50%; height: 90%; border: solid 1px #333333; " src="/search"></iframe>
 
 <!-- Optional JavaScript -->
 <!-- jQuery first, then Popper.js, then Bootstrap JS -->
@@ -42,14 +42,12 @@
 
 
 <script>
-
-
     $(function() {
         $("#startSearchButton").on("click", function(evt){
             $("#startSearchButton").hide();
             $("#searchFrame").show();
-        })
-    })
+        });
+    });
 
     $(function() {
         $("#submitButton").on("click", function(evt){
@@ -59,14 +57,14 @@
                 alert("Directory cannot be empty");
             } else {
                 $.post("/", {directoryValue: directoryValue}, function(result){
-                    $(result).appendTo($("#maindiv"));
+                    $(result).prependTo($("#maindiv"));
                 });
                 $("#submitButton").hide();
                 $("#dir").hide();
                 $("#SQueries").show();
             }
         });
-    })
+    });
 
     $(function() {
         $("#squeryButton").on("click", function(evt){
@@ -74,23 +72,14 @@
             console.log(squeryValue);
             if(squeryValue.charAt(0) === ':') {
                 $.post("/squery", {squeryValue: squeryValue}, function(result){
-                    $(result).appendTo($("#maindiv"));
+                    $(result).prependTo($("#maindiv"));
                 });
             } else {
                 alert("special query must start with :")
             }
             });
-
-
-
-
         });
-
-
-
-
 </script>
-
 
 </body>
 </html>
