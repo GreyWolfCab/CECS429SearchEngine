@@ -64,13 +64,6 @@ public class Indexer {
         userQuery(corpus, index, kGramIndex);//handle user input
 
     }
-    public void runIndexer(String path) {
-        DocumentCorpus corpus = requestDirectory(path);//collect all documents from a directory
-        System.out.println("Indexing: " + path);
-        KGramIndex kGramIndex = new KGramIndex();//build k-gram from 1 to limit sized grams
-        index = timeIndexBuild(corpus, kGramIndex);//build the index and print how long it takes
-
-    }
 
     public static Index indexCorpus(DocumentCorpus corpus, KGramIndex kGramIndex) {
 
@@ -143,10 +136,10 @@ public class Indexer {
         return stemmedTerm;
     }
 
-    public Index userSQueryIndex (DocumentCorpus corpus, Index index, KGramIndex kGramIndex, String queryInput) {
-        corpus = requestDirectory(queryInput.substring(7));//collect all documents from a directory
-        kGramIndex = new KGramIndex();
-        index = timeIndexBuild(corpus, kGramIndex);
+    public Index userSQueryIndex(String queryInput) {
+        DocumentCorpus corpus = requestDirectory(queryInput.substring(7));//collect all documents from a directory
+        KGramIndex kGramIndex = new KGramIndex();
+        Index index = timeIndexBuild(corpus, kGramIndex);
         return index;
     }
 

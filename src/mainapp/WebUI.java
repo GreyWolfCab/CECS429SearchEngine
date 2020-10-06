@@ -18,13 +18,16 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class WebUI {
-    public static void main(String args[]) {
-        Spark.staticFileLocation("public_html");
-        Indexer indexer = new Indexer();
-        KGramIndex kGramIndex = new KGramIndex();
-        AtomicReference<String> dir = new AtomicReference<>("");
-        AtomicReference<ArrayList<Posting>> postings = new AtomicReference<>(new ArrayList());
+    public static Indexer indexer = new Indexer();
+    public static Index index = null;
+    public static KGramIndex kGramIndex = new KGramIndex();
+    public static String dir = "";
+    public static ArrayList<Posting> postings = new ArrayList();
+    public static DocumentCorpus corpus = null;
 
+    public static void main(String args[]) {
+
+        Spark.staticFileLocation("public_html");
         /** testing environment: http://localhost:4567/ **/
         // creates thymeleaf template for index.html at /
         Spark.get("/", (req, res) -> {
@@ -41,18 +44,17 @@ public class WebUI {
         // posts directory
         Spark.post("/", (request, response) -> {
             String directoryValue = request.queryParams("directoryValue");
-            dir.set(directoryValue);
-            indexer.runIndexer(directoryValue);
+            dir = directoryValue;
+            corpus = indexer.requestDirectory(dir);
+            index = indexer.timeIndexBuild(corpus, kGramIndex);
             return "<div style=\"font-size: 12px; position:\">Files Indexed From: " + directoryValue + " Time to Index:"+ indexer.getTimeToBuildIndex() +  " seconds</div>";
         });
 
         // posts query values based on query inputs from client (outputs as html table)
         Spark.post("/search", (request, response) -> {
             String queryValue = request.queryParams("queryValue");
-            DocumentCorpus corpus = indexer.requestDirectory(dir.get());//collect all documents from a directory
-            Index index = indexer.timeIndexBuild(corpus, kGramIndex);
-            postings.set((ArrayList<Posting>) indexer.userQueryInput(corpus, index, queryValue));
-            //System.out.println(response.body());
+
+            postings = (ArrayList<Posting>) indexer.userQueryInput(corpus, index, queryValue);
 
             return "<div><b>Query: </b>" + queryValue +
                     "<table id=\"document-table\" style=\"width:100%\">\n" +
@@ -61,16 +63,16 @@ public class WebUI {
                     "        <th>Document Title</th>\n" +
                     "        <th>Positions</th>\n" +
                     "    </tr>\n" +
-                         postings.get().toString() +
+                         postings.toString() +
                     "</table>" +
-                    "<div>Total Documents: " + postings.get().size() + "</div></div>" ;
+                    "<div>Total Documents: " + postings.size() + "</div></div>" ;
         });
 
         // posts document contents as a div
         Spark.post("/document", (request, response) -> {
             String docid = request.queryParams("docValue");
             int id = Integer.parseInt(docid);
-            DocumentCorpus corpus = indexer.requestDirectory(dir.get());
+            corpus = indexer.requestDirectory(dir);
             corpus.getDocuments(); //this line is needed or else corpus has mDocuments = null ???
             Document doc = corpus.getDocument(id);
             Reader reader = doc.getContent();
@@ -98,9 +100,9 @@ public class WebUI {
                 //build a new index from the given directory
             } else if (squeryValue.length() >= 6 && squeryValue.substring(1, 6).equals("index")) {
                 System.out.println("Resetting the directory...");
-                dir.set(squeryValue.substring(7));
-                indexer.runIndexer(squeryValue.substring(7));
-                return "<div style=\"font-size: 12px\">New Files Indexed From: " + dir.get() + "</div> <div style=\"font-size: 10px\">Time to Index:"+ indexer.getTimeToBuildIndex() +  " seconds</div>";
+                dir = squeryValue.substring(7);
+                indexer.userSQueryIndex(squeryValue.substring(7));
+                return "<div style=\"font-size: 12px\">New Files Indexed From: " + dir + "</div> <div style=\"font-size: 10px\">Time to Index:"+ indexer.getTimeToBuildIndex() +  " seconds</div>";
                 //print the first 1000 terms in the vocabulary
             } else if (squeryValue.length() == 6 && squeryValue.substring(1, 6).equals("vocab")) {
                 List<String> vocabList = indexer.userSQueryVocab();
