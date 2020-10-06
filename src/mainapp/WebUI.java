@@ -101,7 +101,8 @@ public class WebUI {
             } else if (squeryValue.length() >= 6 && squeryValue.substring(1, 6).equals("index")) {
                 System.out.println("Resetting the directory...");
                 dir = squeryValue.substring(7);
-                indexer.userSQueryIndex(squeryValue.substring(7));
+                corpus = indexer.requestDirectory(dir);
+                index = indexer.timeIndexBuild(corpus, kGramIndex);
                 return "<div style=\"font-size: 12px\">New Files Indexed From: " + dir + "</div> <div style=\"font-size: 10px\">Time to Index:"+ indexer.getTimeToBuildIndex() +  " seconds</div>";
                 //print the first 1000 terms in the vocabulary
             } else if (squeryValue.length() == 6 && squeryValue.substring(1, 6).equals("vocab")) {
