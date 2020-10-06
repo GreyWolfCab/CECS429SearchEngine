@@ -57,4 +57,29 @@ public class KGramIndex {
         Collections.sort(keySet);
         return keySet;
     }
+
+    public static List<String> getGrams(int gramLimit, String term) {
+
+        String gramableTerm = "$" + term + "$";//signify beginning and end of term
+        List<String> grams = new ArrayList<>();
+
+        String[] terms = gramableTerm.split("\\*");
+
+        for (int i = 0; i < terms.length; i++) {
+
+            int gramSize = gramLimit;//get the largest k-gram possible
+            while (gramSize > terms[i].length()) {
+                gramSize--;
+            }
+
+            for (int j = 0; j < terms[i].length() - (gramSize-1); j++) {
+                grams.add(terms[i].substring(j, j+gramSize));//get a usable gram
+            }
+
+        }
+
+        return grams;
+
+    }
+
 }

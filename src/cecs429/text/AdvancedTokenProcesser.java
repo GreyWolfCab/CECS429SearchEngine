@@ -56,12 +56,6 @@ public class AdvancedTokenProcesser implements TokenProcessor{
             result.add(stringArray[0].toLowerCase());//add individual token to result
         }
 
-
-        // Stem token using implementation of the Porter2stemmer
-        for(int i = 0; i < result.size(); i++){
-            result.set(i, stemToken(result.get(i)));
-        }
-
         return result;
     }
 
