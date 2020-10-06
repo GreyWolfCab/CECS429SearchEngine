@@ -15,7 +15,9 @@ import java.io.Reader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.joining;
 
 public class WebUI {
     public static Indexer indexer = new Indexer();
@@ -41,13 +43,13 @@ public class WebUI {
             return new ThymeleafTemplateEngine().render(new ModelAndView(model, "search-window"));
         });
 
-        // posts directory
+        // posts directory, builds index
         Spark.post("/", (request, response) -> {
             String directoryValue = request.queryParams("directoryValue");
             dir = directoryValue;
             corpus = indexer.requestDirectory(dir);
             index = indexer.timeIndexBuild(corpus, kGramIndex);
-            return "<div style=\"font-size: 12px; position:\">Files Indexed From: " + directoryValue + " Time to Index:"+ indexer.getTimeToBuildIndex() +  " seconds</div>";
+            return "<div style=\"font-size: 12px; position:\">Files Indexed From: " + directoryValue + " </br>Time to Index:"+ indexer.getTimeToBuildIndex() +  " seconds</div></br>";
         });
 
         // posts query values based on query inputs from client (outputs as html table)
@@ -65,7 +67,7 @@ public class WebUI {
                     "    </tr>\n" +
                          postings.toString() +
                     "</table>" +
-                    "<div>Total Documents: " + postings.size() + "</div></div>" ;
+                    "<div>Total Documents: " + postings.size() + "</div></div></br>" ;
         });
 
         // posts document contents as a div
@@ -85,7 +87,7 @@ public class WebUI {
             } catch (IOException ioe) {
                 ioe.printStackTrace();
             }
-            return "</br><div style=\"\"> " + content.toString() + " </div>";
+            return "</br><div style=\"\"> " + content.toString() + " </div></br>";
         });
 
         // handles special queries from client (posts as a div to client)
@@ -96,20 +98,24 @@ public class WebUI {
                 stemmedTerm = indexer.userSQueryStem(squeryValue);
                 System.out.printf("%s stemmed to: %s", squeryValue.substring(6), stemmedTerm);
                 System.out.println();
-                return "<div style=\"font-size: 12px;\">"+ squeryValue + " stemmed to: " + stemmedTerm + "</div>";
+                return "</br><div style=\"font-size: 12px;\">"+ squeryValue + " stemmed to: " + stemmedTerm + "</div></br>";
                 //build a new index from the given directory
             } else if (squeryValue.length() >= 6 && squeryValue.substring(1, 6).equals("index")) {
                 System.out.println("Resetting the directory...");
                 dir = squeryValue.substring(7);
                 corpus = indexer.requestDirectory(dir);
                 index = indexer.timeIndexBuild(corpus, kGramIndex);
-                return "<div style=\"font-size: 12px\">New Files Indexed From: " + dir + "</div> <div style=\"font-size: 10px\">Time to Index:"+ indexer.getTimeToBuildIndex() +  " seconds</div>";
+                return "<div style=\"font-size: 12px\">New Files Indexed From: " + dir + "</div> </br> <div style=\"font-size: 10px\">Time to Index:"+ indexer.getTimeToBuildIndex() +  " seconds</div>";
                 //print the first 1000 terms in the vocabulary
             } else if (squeryValue.length() == 6 && squeryValue.substring(1, 6).equals("vocab")) {
                 List<String> vocabList = indexer.userSQueryVocab();
-                return "<div style=\"font-size: 12px;\">"+ vocabList +" </br style=\"font-size: 15;\"># of vocab terms: " + vocabList.size() + "</div>";
+                List<String> subVocab = null;
+                if (vocabList.size() >= 1000) { subVocab = vocabList.subList(0, 1000 - 1); }
+                else { subVocab = vocabList.subList(0, vocabList.size() - 1); }
+                String formattedVocabList = subVocab.stream().map(item -> "" + item + "</br>").collect(joining(" "));
+                return "<div style=\"font-size: 12px;\">"+ formattedVocabList +" </br> <b style=\"font-size: 15px;\"># of vocab terms: " + vocabList.size() + "<b></div></br>";
             } else {
-                return "<div style=\"font-size: 12px;\">Not Valid Special Query</div>";
+                return "<div style=\"font-size: 12px;\">Not Valid Special Query</div></br>";
             }
         });
 
