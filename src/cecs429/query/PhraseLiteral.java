@@ -31,7 +31,9 @@ public class PhraseLiteral implements Query {
 		int distance = 1;//maintain the distance required between phrases
 
 		if (mChildren.size() < 2) {//one child denotes a term literal
-			System.out.println("This is a term literal...");
+			if (mChildren.get(0) != null) {
+				result = mChildren.get(0).getPostings(index);
+			}
 		} else  {//multiple terms to merge
 
 			//verify that both terms appear at least in one document
@@ -55,6 +57,10 @@ public class PhraseLiteral implements Query {
 
 			}
 
+		}
+
+		for (Posting post : result) {
+			System.out.println(post);
 		}
 
 		return result;
@@ -82,9 +88,9 @@ public class PhraseLiteral implements Query {
 			//both lists have this document
 			if (firstPostings.get(i).getDocumentId() == secondPostings.get(j).getDocumentId()) {
 				//gather the positions of the phrase terms
-				List<Posting> newPostings = positionalMergePosting(firstPostings.get(i), secondPostings.get(j), distance);
-				if (newPostings.size() > 0) {//if the phrase actually exists
-					result.addAll(newPostings);//include it in merged list
+				Posting newPosting = positionalMergePosting(firstPostings.get(i), secondPostings.get(j), distance);
+				if (newPosting != null) {//if the phrase actually exists
+					result.add(newPosting);//include it in merged list
 				}
 				i++;//iterate through in both lists
 				j++;
@@ -108,9 +114,9 @@ public class PhraseLiteral implements Query {
 	 * @param distance positional space between both terms
 	 * @return valid postings based on positional distance
 	 */
-	private List<Posting> positionalMergePosting(Posting firstPosting, Posting secondPosting, int distance) {
+	private Posting positionalMergePosting(Posting firstPosting, Posting secondPosting, int distance) {
 
-		List<Posting> postings = new ArrayList<>();//postings that are considered a phrase
+		Posting posting = null;//postings that are considered a phrase
 
 		//positional indices
 		int a = 0;
@@ -123,7 +129,11 @@ public class PhraseLiteral implements Query {
 			//check the different terms are in sequence
 			//terms are in sequence
 			if (firstPosting.getPositions().get(a) == (secondPosting.getPositions().get(b) - distance)) {
-				postings.add(new Posting(firstPosting.getDocumentId(), firstPosting.getPositions().get(a), firstPosting.getDocumentTitle()));
+				if (posting == null) {
+					posting = new Posting(firstPosting.getDocumentId(), firstPosting.getPositions().get(a), firstPosting.getDocumentTitle());
+				} else {
+					posting.addPosition(firstPosting.getPositions().get(a));
+				}
 				a++;
 				b++;
 				//first term is before the second
@@ -136,7 +146,7 @@ public class PhraseLiteral implements Query {
 
 		}
 
-		return postings;
+		return posting;
 
 	}
 
