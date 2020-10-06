@@ -72,6 +72,7 @@ public class WebUI {
             String docid = request.queryParams("docValue");
             int id = Integer.parseInt(docid);
             DocumentCorpus corpus = indexer.requestDirectory(dir.get());
+            System.out.println(corpus.getDocuments());
             Document doc = corpus.getDocument(id);
             Reader reader = doc.getContent();
             StringBuilder content = new StringBuilder();
@@ -83,9 +84,8 @@ public class WebUI {
             } catch (IOException ioe) {
                 ioe.printStackTrace();
             }
-            System.out.println(content.toString());
 
-            return "<div> hi </div>";
+            return "<div> " + content.toString() + " </div>";
 
         });
 
