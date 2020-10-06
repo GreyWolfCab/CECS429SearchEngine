@@ -1,14 +1,11 @@
 package mainapp;
 
-import cecs429.documents.DirectoryCorpus;
 import cecs429.documents.Document;
 import cecs429.documents.DocumentCorpus;
-import cecs429.documents.TextFileDocument;
 import cecs429.index.Index;
 import cecs429.index.KGramIndex;
-
-
 import cecs429.index.Posting;
+
 import spark.ModelAndView;
 import spark.Spark;
 import spark.template.thymeleaf.ThymeleafTemplateEngine;
@@ -21,9 +18,6 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class WebUI {
-
-
-
     public static void main(String args[]) {
         Spark.staticFileLocation("public_html");
         Indexer indexer = new Indexer();
@@ -31,17 +25,20 @@ public class WebUI {
         AtomicReference<String> dir = new AtomicReference<>("");
         AtomicReference<ArrayList<Posting>> postings = new AtomicReference<>(new ArrayList());
 
+        /** testing environment: http://localhost:4567/ **/
+        // creates thymeleaf template for index.html at /
         Spark.get("/", (req, res) -> {
             HashMap<String, Object> model =  new HashMap<>();
             return new ThymeleafTemplateEngine().render(new ModelAndView(model, "index"));
         });
 
-
+        // creates thymeleaf template for search-window.html at /search
         Spark.get("/search", (req, res) -> {
             HashMap<String, Object> model = new HashMap<>();
             return new ThymeleafTemplateEngine().render(new ModelAndView(model, "search-window"));
         });
 
+        // posts directory
         Spark.post("/", (request, response) -> {
             String directoryValue = request.queryParams("directoryValue");
             dir.set(directoryValue);
@@ -49,6 +46,7 @@ public class WebUI {
             return "<div style=\"font-size: 12px; position:\">Files Indexed From: " + directoryValue + " Time to Index:"+ indexer.getTimeToBuildIndex() +  " seconds</div>";
         });
 
+        // posts query values based on query inputs from client (outputs as html table)
         Spark.post("/search", (request, response) -> {
             String queryValue = request.queryParams("queryValue");
             DocumentCorpus corpus = indexer.requestDirectory(dir.get());//collect all documents from a directory
@@ -68,11 +66,12 @@ public class WebUI {
                     "<div>Total Documents: " + postings.get().size() + "</div></div>" ;
         });
 
+        // posts document contents as a div
         Spark.post("/document", (request, response) -> {
             String docid = request.queryParams("docValue");
             int id = Integer.parseInt(docid);
             DocumentCorpus corpus = indexer.requestDirectory(dir.get());
-            corpus.getDocuments();
+            corpus.getDocuments(); //this line is needed or else corpus has mDocuments = null ???
             Document doc = corpus.getDocument(id);
             Reader reader = doc.getContent();
             StringBuilder content = new StringBuilder();
@@ -84,34 +83,11 @@ public class WebUI {
             } catch (IOException ioe) {
                 ioe.printStackTrace();
             }
-
             return "</br><div style=\"\"> " + content.toString() + " </div>";
-
         });
 
-//        Spark.post("/doc", (request, response) -> {
-//            String clicked_id = request.queryParams("docID");
-//
-//            int id = Integer.parseInt(clicked_id);
-//            DocumentCorpus corpus = indexer.requestDirectory(dir.get());//collect all documents from a directory
-//            String content = indexer.getDocContents(corpus,id);
-//            Reader reader = doc.getContent();
-//            StringBuilder content = new StringBuilder();
-//            int readerCharValue;
-//            try {
-//                while ((readerCharValue = reader.read()) != -1) {//read each char from the reader
-//                    content.append((char)readerCharValue);//convert the value to a char, add to builder
-//                }
-//            } catch (IOException ioe) {
-//                ioe.printStackTrace();
-//            }
-//            System.out.println(content.toString());
-//
-//            return "<div>" + clicked_id + "</div>";
-//        });
-
+        // handles special queries from client (posts as a div to client)
         Spark.post("/squery", (request, response) -> {
-//            index.set(indexer.timeIndexBuild(corpus, kGramIndex));
             String squeryValue = request.queryParams("squeryValue");
             String stemmedTerm;
             if (squeryValue.length() >= 5 && squeryValue.substring(1, 5).equals("stem")) {
@@ -135,6 +111,4 @@ public class WebUI {
         });
 
     }
-
-
 }

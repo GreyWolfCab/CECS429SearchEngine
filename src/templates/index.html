@@ -42,13 +42,15 @@
 
 
 <script>
+    // javascript functions
+    // start search button function, will hide button and open iframe for search queries
     $(function() {
         $("#startSearchButton").on("click", function(evt){
             $("#startSearchButton").hide();
             $("#searchFrame").show();
         });
     });
-
+    // choose directory function, sets directory and indexes all files, will show special queries
     $(function() {
         $("#submitButton").on("click", function(evt){
             let directoryValue = document.getElementById("directoryInput").value;
@@ -65,7 +67,7 @@
             }
         });
     });
-
+    // special queries button, input special query and it will output in the #maindiv
     $(function() {
         $("#squeryButton").on("click", function(evt){
             let squeryValue = document.getElementById("squeryInput").value;

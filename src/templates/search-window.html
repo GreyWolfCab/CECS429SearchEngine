@@ -30,6 +30,9 @@
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
 
 <script>
+    // javascript functions
+
+    // search button, submit queries to be outputted in iframe (tables) using jQuery
     $(function() {
         $("#searchButton").on("click", function(evt) {
             let queryValue = document.getElementById("queryInput").value;
@@ -42,7 +45,7 @@
             }
         })
     })
-
+    // document selecter button, click document title button to print out document contents by sending a post to "/document" using jQuery
     function docClicked(id) {
         $.post("/document", {docValue: id}, function(result){
             $(result).prependTo($("#search-contents"));

@@ -12,12 +12,11 @@ import cecs429.text.AdvancedTokenProcesser;
 import cecs429.text.EnglishTokenStream;
 
 import java.nio.file.*;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 import java.io.IOException;
 import java.io.Reader;
-import static spark.Spark.*;
+
 
 
 public class Indexer {
