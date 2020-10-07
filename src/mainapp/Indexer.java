@@ -18,6 +18,7 @@ import java.util.Scanner;
 import java.io.IOException;
 import java.io.Reader;
 
+import static mainapp.WebUI.kGramIndex;
 
 
 public class Indexer {
@@ -151,7 +152,7 @@ public class Indexer {
     public static List<Posting> userQueryInput(DocumentCorpus corpus, Index index, String queryInput) {
         BooleanQueryParser query = new BooleanQueryParser();
         Query check = query.parseQuery(queryInput);
-        List<Posting> postings = check.getPostings(index);
+        List<Posting> postings = check.getPostings(index, kGramIndex);
 
         if (postings == null) {//term not found
             System.out.println("No such term found...");
@@ -209,7 +210,7 @@ public class Indexer {
                 } else {//handle typical term query
 
                     //collect postings of the query
-                    List<Posting> postings = query.parseQuery(input).getPostings(index);
+                    List<Posting> postings = query.parseQuery(input).getPostings(index, kGramIndex);
 
                     if (postings == null) {//term not found
                         System.out.println("No such term found...");

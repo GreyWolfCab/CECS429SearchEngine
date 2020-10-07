@@ -37,7 +37,7 @@ public class KGramIndex {
                     terms.add(term);//add the term to the list
                     this.mIndex.put(gram, terms);//add the pair to the hashmap
                 } else {//this gram has occurred before
-                    if (!terms.get(terms.size()-1).equals(term)) {//verify the gram is not repeating in the same term
+                    if (!terms.contains(term)) {//verify the gram is not repeating in the same term
                         terms.add(term);
                     }
                 }
@@ -48,8 +48,9 @@ public class KGramIndex {
     }
 
     public List<String> getTerms(String gram) {
-
-        return mIndex.get(gram);
+        List<String> terms = mIndex.get(gram);
+        Collections.sort(terms);
+        return terms;
     }
 
     public List<String> getGrams() {
@@ -58,7 +59,7 @@ public class KGramIndex {
         return keySet;
     }
 
-    public static List<String> getGrams(int gramLimit, String term) {
+    public List<String> getGrams(int gramLimit, String term) {
 
         String gramableTerm = "$" + term + "$";//signify beginning and end of term
         List<String> grams = new ArrayList<>();

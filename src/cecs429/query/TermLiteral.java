@@ -1,6 +1,7 @@
 package cecs429.query;
 
 import cecs429.index.Index;
+import cecs429.index.KGramIndex;
 import cecs429.index.Posting;
 import cecs429.text.AdvancedTokenProcesser;
 
@@ -22,7 +23,7 @@ public class TermLiteral implements Query {
 	}
 	
 	@Override
-	public List<Posting> getPostings(Index index) {
+	public List<Posting> getPostings(Index index, KGramIndex kGramIndex) {
 		//process token for valid characters
 		AdvancedTokenProcesser processor = new AdvancedTokenProcesser();
 		List<String> terms = processor.processToken(mTerm);

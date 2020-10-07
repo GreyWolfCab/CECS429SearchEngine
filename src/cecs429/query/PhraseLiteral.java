@@ -1,6 +1,7 @@
 package cecs429.query;
 
 import cecs429.index.Index;
+import cecs429.index.KGramIndex;
 import cecs429.index.Posting;
 
 import java.util.ArrayList;
@@ -24,7 +25,7 @@ public class PhraseLiteral implements Query {
 	}
 
 	@Override
-	public List<Posting> getPostings(Index index) {
+	public List<Posting> getPostings(Index index, KGramIndex kGramIndex) {
 		List<Posting> result = new ArrayList<>();
 		// Done: program this method. Retrieve the postings for the individual terms in the phrase,
 		// and positional merge them together.
@@ -32,16 +33,16 @@ public class PhraseLiteral implements Query {
 
 		if (mChildren.size() < 2) {//one child denotes a term literal
 			if (mChildren.get(0) != null) {
-				result = mChildren.get(0).getPostings(index);
+				result = mChildren.get(0).getPostings(index, kGramIndex);
 			}
 		} else  {//multiple terms to merge
 
 			//verify that both terms appear at least in one document
-			if (mChildren.get(0).getPostings(index) != null &&
-				mChildren.get(1).getPostings(index) != null) {
+			if (mChildren.get(0).getPostings(index, kGramIndex) != null &&
+				mChildren.get(1).getPostings(index, kGramIndex) != null) {
 
 				//merge the first 2 terms postings together
-				result = andMergePosting(mChildren.get(0).getPostings(index), mChildren.get(1).getPostings(index), distance);
+				result = andMergePosting(mChildren.get(0).getPostings(index, kGramIndex), mChildren.get(1).getPostings(index, kGramIndex), distance);
 
 			}
 
@@ -50,9 +51,9 @@ public class PhraseLiteral implements Query {
 
 				distance++;//increase the distance between terms
 				//verify the next posting appears in at least 1 document
-				if (mChildren.get(i).getPostings(index) != null) {
+				if (mChildren.get(i).getPostings(index, kGramIndex) != null) {
 					//merge previous result postings with new term postings
-					result = andMergePosting(result, mChildren.get(i).getPostings(index), distance);
+					result = andMergePosting(result, mChildren.get(i).getPostings(index, kGramIndex), distance);
 				}
 
 			}
