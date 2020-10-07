@@ -169,23 +169,6 @@ public class Indexer {
         return postings;
     }
 
-    public static String getDocContents(DocumentCorpus corpus, int id) {
-        Document document = corpus.getDocument(id);
-        Reader reader = document.getContent();//grab the reader
-        StringBuilder content = new StringBuilder();
-        int readerCharValue;
-        try {
-            while ((readerCharValue = reader.read()) != -1) {//read each char from the reader
-                content.append((char)readerCharValue);//convert the value to a char, add to builder
-            }
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
-        }
-
-
-        return content.toString();
-    }
-
     private void userQuery(DocumentCorpus corpus, Index index, KGramIndex kGramIndex) {
 
         //collect input from the user for a query

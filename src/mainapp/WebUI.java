@@ -61,7 +61,7 @@ public class WebUI {
             List<Posting> postings = indexer.userQueryInput(corpus, index, queryValue);
 
             return "<div><b>Query: </b>" + queryValue +
-                    "<table id=\"document-table\" style=\"width:100%\">\n" +
+                    "<table style=\"width:100%\">\n" +
                     "    <tr>\n" +
                     "        <th>Document ID</th>\n" +
                     "        <th>Document Title</th>\n" +

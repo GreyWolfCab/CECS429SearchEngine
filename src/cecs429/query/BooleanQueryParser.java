@@ -67,7 +67,7 @@ public class BooleanQueryParser {
 				// Set the next index to start searching for a literal.
 				subStart = lit.bounds.start + lit.bounds.length;
 
-			} while (subStart < subquery.length());
+			} while (subStart < subquery.length()-1);
 
 			// After processing all literals, we are left with a conjunctive list
 			// of query components, and must fold that list into the final disjunctive list
