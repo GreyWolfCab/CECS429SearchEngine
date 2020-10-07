@@ -6,6 +6,9 @@ import cecs429.index.Index;
 import cecs429.index.KGramIndex;
 import cecs429.index.Posting;
 
+import cecs429.query.BooleanQueryParser;
+import cecs429.query.PhraseLiteral;
+import cecs429.query.Query;
 import spark.ModelAndView;
 import spark.Spark;
 import spark.template.thymeleaf.ThymeleafTemplateEngine;
@@ -23,7 +26,7 @@ public class WebUI {
     public static Index index = null;
     public static KGramIndex kGramIndex = new KGramIndex();
     public static String dir = "";
-    public static ArrayList<Posting> postings = new ArrayList();
+    //public static ArrayList<Posting> postings = new ArrayList();
     public static DocumentCorpus corpus = null;
 
     public static void main(String args[]) {
@@ -55,7 +58,8 @@ public class WebUI {
 
         Spark.post("/search", (request, response) -> {
             String queryValue = request.queryParams("queryValue");
-            postings = (ArrayList<Posting>) indexer.userQueryInput(corpus, index, queryValue);
+            List<Posting> postings = indexer.userQueryInput(corpus, index, queryValue);
+
             return "<div><b>Query: </b>" + queryValue +
                     "<table id=\"document-table\" style=\"width:100%\">\n" +
                     "    <tr>\n" +

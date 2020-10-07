@@ -8,6 +8,7 @@ import cecs429.index.KGramIndex;
 import cecs429.index.PositionalInvertedIndex;
 import cecs429.index.Posting;
 import cecs429.query.BooleanQueryParser;
+import cecs429.query.Query;
 import cecs429.text.AdvancedTokenProcesser;
 import cecs429.text.EnglishTokenStream;
 
@@ -147,9 +148,10 @@ public class Indexer {
         return index.getVocabulary();
     }
 
-    public List<Posting> userQueryInput(DocumentCorpus corpus, Index index, String queryInput) {
+    public static List<Posting> userQueryInput(DocumentCorpus corpus, Index index, String queryInput) {
         BooleanQueryParser query = new BooleanQueryParser();
-        List<Posting> postings = query.parseQuery(queryInput).getPostings(index);
+        Query check = query.parseQuery(queryInput);
+        List<Posting> postings = check.getPostings(index);
 
         if (postings == null) {//term not found
             System.out.println("No such term found...");
