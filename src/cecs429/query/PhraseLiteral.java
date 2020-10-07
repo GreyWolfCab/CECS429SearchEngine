@@ -59,15 +59,6 @@ public class PhraseLiteral implements Query {
 
 		}
 
-		//print the phrase postings to console, since the webUI component doesn't like PhraseLiterals
-		System.out.println("\"" + this + "\"");
-		for (Posting posting : result) {
-			System.out.printf("Document ID: %-9s Title: %s", posting.getDocumentId(),
-					posting.getDocumentTitle());
-			System.out.println();
-		}
-		System.out.println("\nTotal Documents: " + result.size());//print total documents found
-
 		return result;
 	}
 
