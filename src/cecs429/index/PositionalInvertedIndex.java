@@ -1,5 +1,7 @@
 package cecs429.index;
 
+import cecs429.text.AdvancedTokenProcesser;
+
 import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -68,7 +70,10 @@ public class PositionalInvertedIndex implements Index {
 
 	@Override
 	public List<Posting> getPostings(String token) {
-		return this.index.get(token);
+		//process token for valid characters
+		AdvancedTokenProcesser processor = new AdvancedTokenProcesser();
+		String stemmed = AdvancedTokenProcesser.stemToken(token);
+		return this.index.get(stemmed);
 	}
 
 	/**

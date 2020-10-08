@@ -48,6 +48,11 @@ public class Indexer {
         //search for the term: manoa
         String searchText5 = "manoa";
 
+        /**
+         * PHrase terms: cano*
+         * $cano$ $canoa$ $canoe$ $canoe-building$ $canoe-men$ $canoe-only$ $canoe-shaped$ $canoe-yard$ $canoe/boat$ $canoe/kayak$ $canoe/kayak/backcountry$ $canoe/kayak/paddleboard/backcountry$ $canoe/kayak/paddleboard/hydrobike/backcountry$ $canoe/kayak/raft$ $canoe/kayaking$ $canoe:visitors$ $canoed$ $canoein$ $canoeing$ $canoeing.Γ$ $canoeing/kayaking$ $canoeist$ $canoeists$ $canoemen$ $canoemobile$ $canoer$ $canoers$ $canoes$ $canoes...they$ $canoes.Γ$ $canoes/kayaks$ $canoes;and$ $canoesΓ$ $canoethere$ $canoeΓÇöthe$ $canola$ $canon$ $canonchet$ $canoncito$ $canonica$ $canonicus$ $canonization$ $canonized$ $canons$ $canonvb$ $canonvb-h41$ $canooe$ $canopi$ $canopied$ $canopies$ $canopy$ $canopy.about$ $canopy.despite$ $canopy;listen$ $canorus$ $canorus)ΓÇöft/csc$ $canot$ $canova$
+         */
+
     }
 
     /**

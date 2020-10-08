@@ -5,6 +5,7 @@ import cecs429.index.KGramIndex;
 import cecs429.index.Posting;
 import mainapp.Indexer;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -27,15 +28,11 @@ public class WildcardLiteral implements Query {
         List<String> grams = kGramIndex.getGrams(Indexer.K_GRAM_LIMIT, mTerm);
         //retrieve the common terms among all grams
         Set<String> terms = intersectGramPostings(grams, kGramIndex);
+        System.out.println(index.getPostings("cano"));
         //post filter step
-        String filteredTerm = postFilterStep(grams, terms);
-        System.out.println("filter me " + filteredTerm);
+        List<Posting> filteredTerm = postFilterStep(grams, terms, index);
         //return the postings for the most likely term
-        if (filteredTerm != null) {
-            return index.getPostings(filteredTerm);
-        } else {
-            return null;
-        }
+        return filteredTerm;//cano*
 
     }
 
@@ -51,7 +48,9 @@ public class WildcardLiteral implements Query {
 
     }
 
-    private String postFilterStep(List<String> grams, Set<String> terms) {
+    private List<Posting> postFilterStep(List<String> grams, Set<String> terms, Index index) {
+
+        List<Posting> mergedPostings = new ArrayList<>();
 
         for (String term : terms) {//go through every duplicate term
 
@@ -85,13 +84,64 @@ public class WildcardLiteral implements Query {
                 if (!validTerm[q]) {//if a gram was not found
                     break;//this is not the correct term
                 } else if (validTerm[q] && q == validTerm.length-1) {//if every gram was found
-                    return term;//this likely the term
+                    if (index.getPostings(term) != null) {
+                        mergedPostings = orMergePosting(mergedPostings, index.getPostings(term));
+                    }
                 }
             }
 
         }
 
-        return null;//otherwise you get nothing
+        return mergedPostings;//otherwise you get nothing
+
+    }
+
+    /**
+     * or merge adds the smallest doc id first, inclusive if both terms have the same id
+     * @param firstPostings
+     * @param secondPostings
+     * @return
+     */
+    private List<Posting> orMergePosting(List<Posting> firstPostings, List<Posting> secondPostings) {
+
+        List<Posting> result = new ArrayList<Posting>();
+
+        //starting indices for both postings lists
+        int i = 0;
+        int j = 0;
+
+        //iterate through both postings lists, end when one list has no more elements
+        while (i < firstPostings.size() && j < secondPostings.size()) {
+
+            //both lists have this document
+            if (firstPostings.get(i).getDocumentId() == secondPostings.get(j).getDocumentId()) {
+                result.add(firstPostings.get(i));//include it in merged list
+                i++;//iterate through in both lists
+                j++;
+                //first list docid is less than second lists docid
+            } else if (firstPostings.get(i).getDocumentId() < secondPostings.get(j).getDocumentId()) {
+                result.add(firstPostings.get(i));
+                i++;//iterate first list
+            } else {// second list docid is less than first lists docid
+                result.add(secondPostings.get(j));
+                j++;//iterate second list
+            }
+
+        }
+
+        //include the rest of the first postings
+        while (i < firstPostings.size()) {
+            result.add(firstPostings.get(i));
+            i++;
+        }
+
+        //include the rest of the second postings
+        while (j < secondPostings.size()) {
+            result.add(secondPostings.get(j));
+            j++;
+        }
+
+        return result;
 
     }
 
