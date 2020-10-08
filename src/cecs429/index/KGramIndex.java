@@ -17,30 +17,36 @@ public class KGramIndex {
 
         String gramableTerm = "$" + term + "$";//signify beginning and end of term
 
-        for (int j = gramLimit; j > 0; j--) {//add multiple k-gram sizes starting from the upper limit
+        if (gramableTerm.length() <= 2) {
+            //ignore the term
+        } else {
 
-            int gramSize = j;
+            for (int j = gramLimit; j > 0; j--) {//add multiple k-gram sizes starting from the upper limit
 
-            //make sure the gram is within the limits of the term
-            while (gramableTerm.length() < gramSize) {
-                gramSize--;
-            }
+                int gramSize = j;
 
-            //break the term down by the given gram size
-            for (int i = 0; i < gramableTerm.length()-(gramSize-1); i++) {
-                String gram = gramableTerm.substring(i, i+gramSize);//get a usable gram
+                //make sure the gram is within the limits of the term
+                if (gramableTerm.length() >= gramSize) {
+                    gramSize = gramableTerm.length()-1;
+                }
 
-                List<String> terms = this.mIndex.get(gram);//get the term associated to the gram
+                //break the term down by the given gram size
+                for (int i = 0; i < gramableTerm.length()-(gramSize-1); i++) {
+                    String gram = gramableTerm.substring(i, i+gramSize);//get a usable gram
 
-                if (terms == null) {//this is the first occurence of the gram
-                    terms = new ArrayList<String>();//create a new arraylist
-                    terms.add(term);//add the term to the list
-                    this.mIndex.put(gram, terms);//add the pair to the hashmap
-                } else {//this gram has occurred before
-                    if (!terms.contains(term)) {//verify the gram is not repeating in the same term
-                        terms.add(term);
+                    List<String> terms = this.mIndex.get(gram);//get the term associated to the gram
+
+                    if (terms == null) {//this is the first occurence of the gram
+                        terms = new ArrayList<>();//create a new arraylist
+                        terms.add(term);//add the term to the list
+                        this.mIndex.put(gram, terms);//add the pair to the hashmap
+                    } else {//this gram has occurred before
+                        if (!terms.contains(term)) {//verify the gram is not repeating in the same term
+                            terms.add(term);
+                        }
                     }
                 }
+
             }
 
         }

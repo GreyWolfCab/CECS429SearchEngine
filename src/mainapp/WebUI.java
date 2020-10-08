@@ -26,11 +26,11 @@ public class WebUI {
     public static Index index = null;
     public static KGramIndex kGramIndex = new KGramIndex();
     public static String dir = "";
-    //public static ArrayList<Posting> postings = new ArrayList();
     public static DocumentCorpus corpus = null;
 
     public static void main(String args[]) {
 
+        System.out.println("http://localhost:4567/");
         Spark.staticFileLocation("public_html");
         /** testing environment: http://localhost:4567/ **/
         // creates thymeleaf template for index.html at /

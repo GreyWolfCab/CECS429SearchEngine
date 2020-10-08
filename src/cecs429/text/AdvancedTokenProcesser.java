@@ -37,14 +37,24 @@ public class AdvancedTokenProcesser implements TokenProcessor{
         currentToken = token.substring(beginIndex, endIndex+1);
 
         // Remove all apostrophes or quotation marks (single or double) from anywhere in the string
-        currentToken = currentToken.replaceAll("\'","");
-        currentToken = currentToken.replaceAll("\"","");
+//        currentToken = currentToken.replaceAll("\'","");
+//        currentToken = currentToken.replaceAll("\"","");
+        char singleQuote = '\'';
+        char doubleQuote = '\"';
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < currentToken.length(); i++) {
+            char c = currentToken.charAt(i);
+            if (c != singleQuote && c != doubleQuote) {
+                sb.append(c);
+            }
+
+        }
+        currentToken = sb.toString();
 
         // Remove hyphens and split up the original hyphenated token into multiple tokens (returns combined, and separated strings)
         stringArray = currentToken.split("-",-1);
 
         // Convert token to lowercase and add to result array
-
         if (stringArray.length > 1) {//multiple tokens found
             StringBuilder combinedToken = new StringBuilder();//combination of all subtokens into one
             for(int i = 0; i < stringArray.length;i++){//iterate through all subtokens separately
