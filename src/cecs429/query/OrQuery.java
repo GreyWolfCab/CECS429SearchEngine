@@ -25,26 +25,14 @@ public class OrQuery implements Query {
 	public List<Posting> getPostings(Index index, KGramIndex kGramIndex) {
 		List<Posting> result = new ArrayList<>();
 
-		if (mChildren.size() < 2) {//should be impossible to reach for or query
-			System.out.println("How did you get in the Or Query?");
-		} else {//multiple terms to merge
-
-			//verify the both terms appear at least in one document
-			if (mChildren.get(0).getPostings(index, kGramIndex) != null &&
-					mChildren.get(1).getPostings(index, kGramIndex) != null) {
-				result = orMergePosting(mChildren.get(0).getPostings(index, kGramIndex), mChildren.get(1).getPostings(index, kGramIndex));
+		for (int i = 0; i < mChildren.size(); i++) {
+			//verify the next posting appears in at least 1 document
+			Query child = mChildren.get(i);
+			List<Posting> posting = child.getPostings(index, kGramIndex);
+			int size = posting.size();
+			if (mChildren.get(i).getPostings(index, kGramIndex).size() != 0) {
+				result = orMergePosting(mChildren.get(i).getPostings(index, kGramIndex), result);
 			}
-
-			//iterate through the rest of the postings
-			for (int i = 2; i < mChildren.size(); i++) {
-
-				//verify the next posting appears in at least 1 document
-				if (mChildren.get(i).getPostings(index, kGramIndex) != null) {
-					result = orMergePosting(mChildren.get(i).getPostings(index, kGramIndex), result);
-				}
-
-			}
-
 		}
 
 		// Done: program the merge for an OrQuery, by gathering the postings of the composed Query children and

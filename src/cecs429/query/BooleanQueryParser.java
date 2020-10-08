@@ -156,10 +156,17 @@ public class BooleanQueryParser {
 			if (phraseEnd >= 0) {
 				lengthOut = phraseEnd - startIndex;
 
+				//split up the terms within the phrase
 				String[] splitPhrase = subquery.substring(startIndex, startIndex + lengthOut).split(" ");
 				List<Query> phraseTerms = new ArrayList<>();
 				for (int i = 0; i < splitPhrase.length; i++) {
-					phraseTerms.add(new TermLiteral(splitPhrase[i]));
+					//locate a wildcard within the term
+					int wildCard = splitPhrase[i].indexOf('*');
+					if (wildCard >= 0) {
+						phraseTerms.add(new WildcardLiteral(splitPhrase[i]));
+					} else {
+						phraseTerms.add(new TermLiteral(splitPhrase[i]));
+					}
 				}
 
 				// This is a phrase literal containing multiple terms.

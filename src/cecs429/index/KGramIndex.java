@@ -1,16 +1,13 @@
 package cecs429.index;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 public class KGramIndex {
 
-    private HashMap<String, List<String>> mIndex;
+    private HashMap<String, Set<String>> mIndex;
 
     public KGramIndex() {
-        mIndex = new HashMap<String, List<String>>();
+        mIndex = new HashMap<String, Set<String>>();
     }
 
     public void addGram(int gramLimit, String term) {
@@ -26,7 +23,7 @@ public class KGramIndex {
                 int gramSize = j;
 
                 //make sure the gram is within the limits of the term
-                if (gramableTerm.length() >= gramSize) {
+                if (gramableTerm.length() <= gramSize) {
                     gramSize = gramableTerm.length()-1;
                 }
 
@@ -34,16 +31,14 @@ public class KGramIndex {
                 for (int i = 0; i < gramableTerm.length()-(gramSize-1); i++) {
                     String gram = gramableTerm.substring(i, i+gramSize);//get a usable gram
 
-                    List<String> terms = this.mIndex.get(gram);//get the term associated to the gram
+                    Set<String> terms = this.mIndex.get(gram);//get the term associated to the gram
 
                     if (terms == null) {//this is the first occurence of the gram
-                        terms = new ArrayList<>();//create a new arraylist
+                        terms = new HashSet<>();//create a new arraylist
                         terms.add(term);//add the term to the list
                         this.mIndex.put(gram, terms);//add the pair to the hashmap
                     } else {//this gram has occurred before
-                        if (!terms.contains(term)) {//verify the gram is not repeating in the same term
-                            terms.add(term);
-                        }
+                        terms.add(term);
                     }
                 }
 
@@ -53,10 +48,8 @@ public class KGramIndex {
 
     }
 
-    public List<String> getTerms(String gram) {
-        List<String> terms = mIndex.get(gram);
-        Collections.sort(terms);
-        return terms;
+    public Set<String> getTerms(String gram) {
+        return mIndex.get(gram);
     }
 
     public List<String> getGrams() {

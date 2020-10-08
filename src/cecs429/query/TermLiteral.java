@@ -33,7 +33,9 @@ public class TermLiteral implements Query {
 		//collect the postings for the term
 		List<Posting> result = new ArrayList<Posting>();
 		for (String term: terms) {
-			result.addAll(index.getPostings(term));
+			if (index.getPostings(term) != null) {
+				result.addAll(index.getPostings(term));
+			}
 		}
 		return result;
 	}

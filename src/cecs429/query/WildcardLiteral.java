@@ -5,8 +5,9 @@ import cecs429.index.KGramIndex;
 import cecs429.index.Posting;
 import mainapp.Indexer;
 
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class WildcardLiteral implements Query {
 
@@ -25,9 +26,10 @@ public class WildcardLiteral implements Query {
         //generate the largest k-gram we can from each section of the term
         List<String> grams = kGramIndex.getGrams(Indexer.K_GRAM_LIMIT, mTerm);
         //retrieve the common terms among all grams
-        List<String> terms = intersectGramPostings(grams, kGramIndex);
+        Set<String> terms = intersectGramPostings(grams, kGramIndex);
         //post filter step
         String filteredTerm = postFilterStep(grams, terms);
+        System.out.println("filter me " + filteredTerm);
         //return the postings for the most likely term
         if (filteredTerm != null) {
             return index.getPostings(filteredTerm);
@@ -37,60 +39,19 @@ public class WildcardLiteral implements Query {
 
     }
 
-    private List<String> intersectGramPostings(List<String> grams, KGramIndex kGramIndex) {
+    private Set<String> intersectGramPostings(List<String> grams, KGramIndex kGramIndex) {
 
-        List<String> intersectingTerms = new ArrayList<>();
+        Set<String> intersectingTerms = new HashSet<>(kGramIndex.getTerms(grams.get(0)));
 
-        //intersect the first 2 gram postings
-        if (grams.size() >= 2) {
-            //make sure both grams do not have empty postings
-            if (kGramIndex.getTerms(grams.get(0)).size() != 0 &&
-                    kGramIndex.getTerms(grams.get(1)).size() != 0) {
-                //intersect duplicate terms
-                intersectingTerms = mergeTerms(kGramIndex.getTerms(grams.get(0)), kGramIndex.getTerms(grams.get(1)));
-            }
-        }
-
-        //for more than 2 grams merge the previous merged terms together
-        for (int i = 2; i < grams.size(); i++) {
-
-            //intersect duplicate terms
-            intersectingTerms = mergeTerms(intersectingTerms, kGramIndex.getTerms(grams.get(i)));
-
+        for (int i = 1; i < grams.size(); i++) {
+            intersectingTerms.retainAll(kGramIndex.getTerms(grams.get(i)));
         }
 
         return intersectingTerms;
 
     }
 
-    private List<String> mergeTerms(List<String> firstTerms, List<String> secondTerms) {
-
-        List<String> duplicateTerms = new ArrayList<>();
-
-        //starting indices for both postings lists
-        int i = 0;
-        int j = 0;
-
-        //iterate through both postings lists, end when one list has no more elements
-        while(i < firstTerms.size() && j < secondTerms.size()) {
-
-            if (firstTerms.get(i).equals(secondTerms.get(j))) {//if the terms are the same
-                duplicateTerms.add(firstTerms.get(i));
-                i++;
-                j++;
-            } else if (firstTerms.get(i).compareTo(secondTerms.get(j)) < 0) {//if the first term is less than the second
-                i++;
-            } else {//the second term is less than the first
-                j++;
-            }
-
-        }
-
-        return duplicateTerms;
-
-    }
-
-    private String postFilterStep(List<String> grams, List<String> terms) {
+    private String postFilterStep(List<String> grams, Set<String> terms) {
 
         for (String term : terms) {//go through every duplicate term
 

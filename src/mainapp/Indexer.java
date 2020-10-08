@@ -18,8 +18,6 @@ import java.util.Scanner;
 import java.io.IOException;
 import java.io.Reader;
 
-import static mainapp.WebUI.kGramIndex;
-
 
 public class Indexer {
 
@@ -149,10 +147,9 @@ public class Indexer {
         return index.getVocabulary();
     }
 
-    public static List<Posting> userQueryInput(DocumentCorpus corpus, Index index, String queryInput) {
+    public static List<Posting> userQueryInput(DocumentCorpus corpus, Index index, KGramIndex kGramIndex, String queryInput) {
         BooleanQueryParser query = new BooleanQueryParser();
-        Query check = query.parseQuery(queryInput);
-        List<Posting> postings = check.getPostings(index, kGramIndex);
+        List<Posting> postings = query.parseQuery(queryInput).getPostings(index, kGramIndex);
 
         if (postings == null) {//term not found
             System.out.println("No such term found...");

@@ -58,7 +58,7 @@ public class WebUI {
 
         Spark.post("/search", (request, response) -> {
             String queryValue = request.queryParams("queryValue");
-            List<Posting> postings = indexer.userQueryInput(corpus, index, queryValue);
+            List<Posting> postings = indexer.userQueryInput(corpus, index, kGramIndex, queryValue);
 
             return "<div><b>Query: </b>" + queryValue +
                     "<table style=\"width:100%\">\n" +
