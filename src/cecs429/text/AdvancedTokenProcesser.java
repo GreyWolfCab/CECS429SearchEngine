@@ -51,6 +51,7 @@ public class AdvancedTokenProcesser implements TokenProcessor{
         }
         currentToken = sb.toString();
 
+        //DONE: remove hyphens from tokens
         // Remove hyphens and split up the original hyphenated token into multiple tokens (returns combined, and separated strings)
         stringArray = currentToken.split("-",-1);
 
@@ -70,6 +71,7 @@ public class AdvancedTokenProcesser implements TokenProcessor{
     }
 
     /**
+     * DONE stemmer
      * stem a single token using the Porter2stemmer method
      * @param token the token to be stemmed
      * @return the stemmed token
@@ -88,6 +90,12 @@ public class AdvancedTokenProcesser implements TokenProcessor{
 
     }
 
+    /**
+     * DONE nonalpha characters
+     * determine if the character is an alpha-numeric character
+     * @param c the character to inspect
+     * @return whether the character is alpha-numeric or not
+     */
     private static boolean isAlphanumeric(char c) {
         //checks chars exist within the range of letters and numbers via ascii
         if (c < 0x30 || (c >= 0x3a && c <= 0x40) || (c > 0x5a && c <= 0x60) || c > 0x7a){

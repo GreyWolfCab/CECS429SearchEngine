@@ -8,7 +8,6 @@ import cecs429.index.KGramIndex;
 import cecs429.index.PositionalInvertedIndex;
 import cecs429.index.Posting;
 import cecs429.query.BooleanQueryParser;
-import cecs429.query.Query;
 import cecs429.text.AdvancedTokenProcesser;
 import cecs429.text.EnglishTokenStream;
 
@@ -52,7 +51,7 @@ public class Indexer {
     }
 
     /**
-     *
+     *  used by the console to trigger the start of the application
      */
     private void runMainApp() {
 
@@ -136,13 +135,6 @@ public class Indexer {
         return stemmedTerm;
     }
 
-    public Index userSQueryIndex(String queryInput) {
-        DocumentCorpus corpus = requestDirectory(queryInput.substring(7));//collect all documents from a directory
-        KGramIndex kGramIndex = new KGramIndex();
-        Index index = timeIndexBuild(corpus, kGramIndex);
-        return index;
-    }
-
     public List<String> userSQueryVocab () {
         return index.getVocabulary();
     }
@@ -167,6 +159,12 @@ public class Indexer {
         return postings;
     }
 
+    /**
+     * method for collecting a users query via the console
+     * @param corpus the documents parsed through by the index
+     * @param index a collection of terms and documents
+     * @param kGramIndex a collection of characters in sequence associated with complete terms
+     */
     private void userQuery(DocumentCorpus corpus, Index index, KGramIndex kGramIndex) {
 
         //collect input from the user for a query
@@ -313,18 +311,6 @@ public class Indexer {
         System.out.println("Time to build index: " + indexSeconds + " seconds");
         this.setTimeToBuildIndex(indexSeconds);
         return index;
-
-    }
-
-    public static KGramIndex buildKGramIndex(int kGramLimit, Index index) {
-
-        KGramIndex kGramIndex = new KGramIndex();
-
-        for (String term : index.getVocabulary()) {
-            kGramIndex.addGram(3, term);
-        }
-
-        return kGramIndex;
 
     }
 

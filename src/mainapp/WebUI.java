@@ -6,16 +6,12 @@ import cecs429.index.Index;
 import cecs429.index.KGramIndex;
 import cecs429.index.Posting;
 
-import cecs429.query.BooleanQueryParser;
-import cecs429.query.PhraseLiteral;
-import cecs429.query.Query;
 import spark.ModelAndView;
 import spark.Spark;
 import spark.template.thymeleaf.ThymeleafTemplateEngine;
 
 import java.io.IOException;
 import java.io.Reader;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -98,7 +94,10 @@ public class WebUI {
         Spark.post("/squery", (request, response) -> {
             String squeryValue = request.queryParams("squeryValue");
             String stemmedTerm;
-            if (squeryValue.length() >= 5 && squeryValue.substring(1, 5).equals("stem")) {
+            if (squeryValue.length() == 2 && squeryValue.substring(1, 2).equals("q")) {
+                System.out.println("\nEnding program...");
+                System.exit(-1);
+            } if (squeryValue.length() >= 5 && squeryValue.substring(1, 5).equals("stem")) {
                 stemmedTerm = indexer.userSQueryStem(squeryValue);
                 System.out.printf("%s stemmed to: %s", squeryValue.substring(6), stemmedTerm);
                 System.out.println();
