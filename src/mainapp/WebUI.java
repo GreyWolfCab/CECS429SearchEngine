@@ -2,6 +2,7 @@ package mainapp;
 
 import cecs429.documents.Document;
 import cecs429.documents.DocumentCorpus;
+import cecs429.index.DiskIndexWriter;
 import cecs429.index.Index;
 import cecs429.index.KGramIndex;
 import cecs429.index.Posting;
@@ -23,6 +24,7 @@ public class WebUI {
     public static KGramIndex kGramIndex = new KGramIndex();
     public static String dir = "";
     public static DocumentCorpus corpus = null;
+    public static DiskIndexWriter diskIndexWriter = new DiskIndexWriter();
 
     public static void main(String args[]) {
 
@@ -47,6 +49,7 @@ public class WebUI {
             dir = directoryValue;
             corpus = indexer.requestDirectory(dir);
             index = indexer.timeIndexBuild(corpus, kGramIndex);
+            diskIndexWriter.writeIndex(index, dir);//calls the writer of index to disk
             return "<div style=\"font-size: 12px; position:\">Files Indexed From: " + directoryValue + " </br>Time to Index:"+ indexer.getTimeToBuildIndex() +  " seconds</div></br>";
         });
 
