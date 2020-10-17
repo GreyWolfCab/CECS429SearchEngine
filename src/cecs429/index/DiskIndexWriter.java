@@ -6,9 +6,9 @@ import java.util.List;
 
 public class DiskIndexWriter {
 
-    public ArrayList<Integer> writeIndex(Index index, String indexLocation) throws IOException {
+    public ArrayList<Long> writeIndex(Index index, String indexLocation) throws IOException {
 
-        ArrayList<Integer> termAddresses = new ArrayList<>();
+        ArrayList<Long> termAddresses = new ArrayList<>();
 
         //create an index folder in the corpus
         File directory = new File(indexLocation + "\\index");
@@ -25,12 +25,13 @@ public class DiskIndexWriter {
 
         //create postings.bin file to act as index on disk
         try (DataOutputStream dout = new DataOutputStream(
-                new FileOutputStream(indexLocation + "\\index\\postings.bin"))) {
+                new BufferedOutputStream(
+                        new FileOutputStream(indexLocation + "\\index\\postings.bin")))) {
 
             for (int i = 0; i < terms.size(); i++) {//iterate through vocabulary of index
 
                 //get current position stored as address for term
-                termAddresses.add(dout.size());
+                termAddresses.add((long)dout.size());
                 //make sure the term exists
                 if (index.getPostings(terms.get(i)) == null) {
                     dout.writeInt(0);//term appears in 0 documents
@@ -62,6 +63,8 @@ public class DiskIndexWriter {
         } catch (FileNotFoundException fnfe) {
             fnfe.printStackTrace();
         }
+
+        System.out.println(termAddresses);
 
         return termAddresses;
 
