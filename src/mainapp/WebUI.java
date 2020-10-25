@@ -2,10 +2,7 @@ package mainapp;
 
 import cecs429.documents.Document;
 import cecs429.documents.DocumentCorpus;
-import cecs429.index.DiskIndexWriter;
-import cecs429.index.Index;
-import cecs429.index.KGramIndex;
-import cecs429.index.Posting;
+import cecs429.index.*;
 
 import spark.ModelAndView;
 import spark.Spark;
@@ -13,6 +10,7 @@ import spark.template.thymeleaf.ThymeleafTemplateEngine;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -25,6 +23,7 @@ public class WebUI {
     public static String dir = "";
     public static DocumentCorpus corpus = null;
     public static DiskIndexWriter diskIndexWriter = new DiskIndexWriter();
+    public static DiskPositionalIndex diskPositionalIndex = new DiskPositionalIndex();
 
     public static void main(String args[]) {
 
@@ -49,7 +48,8 @@ public class WebUI {
             dir = directoryValue;
             corpus = indexer.requestDirectory(dir);
             index = indexer.timeIndexBuild(corpus, kGramIndex);
-            diskIndexWriter.writeIndex(index, dir);//calls the writer of index to disk
+            ArrayList<Long> addresses = diskIndexWriter.writeIndex(index, dir);//calls the writer of index to disk
+            buildDiskPositionalIndex(addresses);
             return "<div style=\"font-size: 12px; position:\">Files Indexed From: " + directoryValue + " </br>Time to Index:"+ indexer.getTimeToBuildIndex() +  " seconds</div></br>";
         });
 
@@ -126,4 +126,13 @@ public class WebUI {
         });
 
     }
+
+    public static void buildDiskPositionalIndex(ArrayList<Long> addresses) {
+        List<String> terms = index.getVocabulary();
+        for (int i = 0; i < terms.size(); i++) {
+            diskPositionalIndex.addBTree(terms.get(i), addresses.get(i));
+        }
+        diskPositionalIndex.closeBTree();
+    }
+
 }

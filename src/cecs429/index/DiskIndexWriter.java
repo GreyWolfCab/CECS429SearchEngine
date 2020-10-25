@@ -64,8 +64,6 @@ public class DiskIndexWriter {
             fnfe.printStackTrace();
         }
 
-        System.out.println(termAddresses);
-
         return termAddresses;
 
     }
