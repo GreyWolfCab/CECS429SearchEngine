@@ -178,6 +178,41 @@ public class BooleanQueryParser {
 
 		}
 
+		// determine if a NEAR literal is next
+		// ex. [baseball NEAR/2 angels]
+		if (subquery.charAt(startIndex) == '[') {
+			startIndex++; // skip initial '['
+			int nearEnd = subquery.indexOf(']', startIndex+1);
+			if (nearEnd >= 0) {
+				lengthOut = nearEnd - startIndex;
+
+				// split literal into [ firstTerm, NEAR/k, secondTerm ]
+				String[] splitNEAR = subquery.substring(startIndex, startIndex + lengthOut).split(" ");
+				List<Query> nearTerms = new ArrayList<>();
+				int k = 0;
+				for (int i = 0; i < splitNEAR.length; i++) {
+					if(i == 1){
+						// second term is the NEAR/k, extract k
+						k = Integer.parseInt(splitNEAR[i].substring(5));
+					}
+					// check for wildcard
+					int wildCard = splitNEAR[i].indexOf('*');
+					if(wildCard >= 0) {
+						// wildcard literal
+						nearTerms.add(new WildcardLiteral(splitNEAR[i]));
+					} else {
+						// term literal
+						nearTerms.add(new TermLiteral(splitNEAR[i]));
+					}
+				}
+
+				return new Literal(
+						new StringBounds(startIndex, lengthOut),
+						new NearLiteral(nearTerms,k));
+			}
+
+		}
+
 		// Locate the next space to find the end of this literal.
 		int nextSpace = subquery.indexOf(' ', startIndex);
 		if (nextSpace < 0) {

@@ -10,6 +10,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * A WildcardLiteral represents a subquery that includes * and utilizes k-grams.
+ * ex. c*r
+ *  will return all documents that include a term beginning in 'c' and ending in 'r'
+ */
 public class WildcardLiteral implements Query {
 
     private String mTerm;

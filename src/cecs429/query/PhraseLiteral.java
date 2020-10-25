@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 
 /**
  * Represents a phrase literal consisting of one or more terms that must occur in sequence.
+ * ex. "california state university"
  */
 public class PhraseLiteral implements Query {
 	// The list of individual terms in the phrase.
