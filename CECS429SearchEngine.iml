@@ -49,5 +49,6 @@
         </SOURCES>
       </library>
     </orderEntry>
+    <orderEntry type="library" name="org.mapdb:mapdb:3.0.8" level="project" />
   </component>
 </module>
