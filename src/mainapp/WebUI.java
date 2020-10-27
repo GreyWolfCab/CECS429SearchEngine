@@ -23,7 +23,8 @@ public class WebUI {
     public static String dir = "";
     public static DocumentCorpus corpus = null;
     public static DiskIndexWriter diskIndexWriter = new DiskIndexWriter();
-    public static DiskPositionalIndex diskPositionalIndex = new DiskPositionalIndex();
+
+    public static boolean isDiskIndex = false;
 
     public static void main(String args[]) {
 
@@ -44,13 +45,19 @@ public class WebUI {
 
         // posts directory, builds index
         Spark.post("/", (request, response) -> {
+            isDiskIndex = false;
             String directoryValue = request.queryParams("directoryValue");
             dir = directoryValue;
             corpus = indexer.requestDirectory(dir);
             index = indexer.timeIndexBuild(corpus, kGramIndex);
             ArrayList<Long> addresses = diskIndexWriter.writeIndex(index, dir);//calls the writer of index to disk
-            buildDiskPositionalIndex(addresses);
             return "<div style=\"font-size: 12px; position:\">Files Indexed From: " + directoryValue + " </br>Time to Index:"+ indexer.getTimeToBuildIndex() +  " seconds</div></br>";
+        });
+
+        Spark.post("/buildindex", (request, response) -> {
+            isDiskIndex = true;
+            buildDiskPositionalIndex();
+            return "<div style=\"font-size: 12px; position:\">Built Index from disk storage</div>";
         });
 
         // posts query values based on query inputs from client (outputs as html table)
@@ -127,11 +134,10 @@ public class WebUI {
 
     }
 
-    public static void buildDiskPositionalIndex(ArrayList<Long> addresses) {
-        List<String> terms = index.getVocabulary();
-        for (int i = 0; i < terms.size(); i++) {
-            diskPositionalIndex.addBTree(terms.get(i), addresses.get(i));
-        }
+    public static void buildDiskPositionalIndex() {
+        System.out.println("It still manages to call buildDiskPositionalIndex...");
+        DiskPositionalIndex diskPositionalIndex = new DiskPositionalIndex();
+        System.out.println(diskPositionalIndex.getKeyTermAddress("creep"));
         diskPositionalIndex.closeBTree();
     }
 

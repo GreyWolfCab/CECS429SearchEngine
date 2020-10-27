@@ -1,10 +1,22 @@
 package cecs429.index;
 
+import org.mapdb.BTreeMap;
+import org.mapdb.DB;
+import org.mapdb.DBMaker;
+import org.mapdb.Serializer;
+
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class DiskIndexWriter {
+
+    DB db = DBMaker.fileDB("file.db").make();
+    BTreeMap<String, Long> map = db.treeMap("map")
+            .keySerializer(Serializer.STRING)
+            .valueSerializer(Serializer.LONG)
+            .counterEnable()
+            .createOrOpen();
 
     public ArrayList<Long> writeIndex(Index index, String indexLocation) throws IOException {
 
@@ -30,6 +42,8 @@ public class DiskIndexWriter {
 
             for (int i = 0; i < terms.size(); i++) {//iterate through vocabulary of index
 
+                //store term and address in B+ tree
+                addBTree(terms.get(i), (long)dout.size());
                 //get current position stored as address for term
                 termAddresses.add((long)dout.size());
                 //make sure the term exists
@@ -64,8 +78,21 @@ public class DiskIndexWriter {
             fnfe.printStackTrace();
         }
 
+        closeBTree();
+
         return termAddresses;
 
+    }
+
+    public void addBTree(String term, long address) {
+
+        map.put(term, address);
+
+    }
+
+    public void closeBTree() {
+        db.commit();//not sure if there is a difference
+        db.close();
     }
 
 }

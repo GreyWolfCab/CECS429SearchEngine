@@ -19,6 +19,9 @@
 
         <a id="submitButton" >SUBMIT</a>
     </div>
+    <div id="diskIndex">
+        <button id="buildDiskIndex">Build Disk Index</button>
+    </div>
 </div>
 
 <div style="position: fixed; bottom: 10px; right: 10px;">
@@ -62,8 +65,20 @@
                 });
                 $("#submitButton").hide();
                 $("#dir").hide();
+                $("#diskIndex").hide();
                 $("#SQueries").show();
             }
+        });
+    });
+    //build index from disk storage button
+    $(function() {
+        $("#buildDiskIndex").on("click", function(evt) {
+            $.post("/buildindex", function(result) {
+                $(result).prependTo($("#maindiv"));
+            });
+            $("#submitButton").hide();
+            $("#dir").hide();
+            $("#diskIndex").hide();
         });
     });
     // special queries button, input special query and it will output in the #maindiv
