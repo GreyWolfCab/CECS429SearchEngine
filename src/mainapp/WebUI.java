@@ -56,7 +56,9 @@ public class WebUI {
 
         Spark.post("/buildindex", (request, response) -> {
             isDiskIndex = true;
-            buildDiskPositionalIndex();
+            String directoryValue = request.queryParams("directoryValue");
+            dir = directoryValue;
+            index = buildDiskPositionalIndex(dir);
             return "<div style=\"font-size: 12px; position:\">Built Index from disk storage</div>";
         });
 
@@ -64,7 +66,12 @@ public class WebUI {
 
         Spark.post("/search", (request, response) -> {
             String queryValue = request.queryParams("queryValue");
-            List<Posting> postings = indexer.userQueryInput(corpus, index, kGramIndex, queryValue);
+            List<Posting> postings = null;
+            if (isDiskIndex) {
+                //postings = from B+ tree
+            } else {
+                postings = indexer.userQueryInput(corpus, index, kGramIndex, queryValue);
+            }
 
             return "<div><b>Query: </b>" + queryValue +
                     "<table style=\"width:100%\">\n" +
@@ -134,11 +141,10 @@ public class WebUI {
 
     }
 
-    public static void buildDiskPositionalIndex() {
-        System.out.println("It still manages to call buildDiskPositionalIndex...");
-        DiskPositionalIndex diskPositionalIndex = new DiskPositionalIndex();
-        System.out.println(diskPositionalIndex.getKeyTermAddress("creep"));
-        diskPositionalIndex.closeBTree();
+    public static DiskPositionalIndex buildDiskPositionalIndex(String dir) {
+        DiskPositionalIndex diskPositionalIndex = new DiskPositionalIndex(dir);
+        System.out.println(diskPositionalIndex.getKeyTermAddress("grub"));
+        return diskPositionalIndex;
     }
 
 }

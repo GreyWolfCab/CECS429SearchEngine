@@ -11,22 +11,22 @@ import java.util.List;
 
 public class DiskIndexWriter {
 
-    DB db = DBMaker.fileDB("file.db").make();
-    BTreeMap<String, Long> map = db.treeMap("map")
-            .keySerializer(Serializer.STRING)
-            .valueSerializer(Serializer.LONG)
-            .counterEnable()
-            .createOrOpen();
-
     public ArrayList<Long> writeIndex(Index index, String indexLocation) throws IOException {
-
-        ArrayList<Long> termAddresses = new ArrayList<>();
 
         //create an index folder in the corpus
         File directory = new File(indexLocation + "\\index");
         if (!directory.exists()) {
             directory.mkdirs();
         }
+
+        DB db = DBMaker.fileDB(indexLocation + "\\index\\file.db").make();
+        BTreeMap<String, Long> map = db.treeMap("map")
+                .keySerializer(Serializer.STRING)
+                .valueSerializer(Serializer.LONG)
+                .counterEnable()
+                .createOrOpen();
+
+        ArrayList<Long> termAddresses = new ArrayList<>();
 
         List<String> terms = index.getVocabulary();
         // all values in the file are 4-bytes
@@ -43,7 +43,8 @@ public class DiskIndexWriter {
             for (int i = 0; i < terms.size(); i++) {//iterate through vocabulary of index
 
                 //store term and address in B+ tree
-                addBTree(terms.get(i), (long)dout.size());
+                map.put(terms.get(i), (long)dout.size());
+                //db.commit();
                 //get current position stored as address for term
                 termAddresses.add((long)dout.size());
                 //make sure the term exists
@@ -78,21 +79,10 @@ public class DiskIndexWriter {
             fnfe.printStackTrace();
         }
 
-        closeBTree();
+        db.close();
 
         return termAddresses;
 
-    }
-
-    public void addBTree(String term, long address) {
-
-        map.put(term, address);
-
-    }
-
-    public void closeBTree() {
-        db.commit();//not sure if there is a difference
-        db.close();
     }
 
 }

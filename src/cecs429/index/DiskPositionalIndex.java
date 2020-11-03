@@ -8,22 +8,28 @@ import org.mapdb.serializer.SerializerArray;
 
 public class DiskPositionalIndex implements Index {
 
-    DB db = DBMaker.fileDB("file.db").make();
-    BTreeMap<String, Long> map = db.treeMap("map")
-            .keySerializer(Serializer.STRING)
-            .valueSerializer(Serializer.LONG)
-            .counterEnable()
-            .createOrOpen();
+//    DB db = DBMaker.fileDB("file.db").make();
 
-    public void addBTree(String term, long address) {
+    DB diskIndex = null;
+    BTreeMap<String, Long> map = null;
 
-        map.put(term, address);
-
+    public DiskPositionalIndex(String dir) {
+        try {
+            diskIndex = DBMaker.fileDB(dir + "\\index\\file.db").make();
+            map = diskIndex.treeMap("map")
+                    .keySerializer(Serializer.STRING)
+                    .valueSerializer(Serializer.LONG)
+                    .counterEnable()
+                    .open();
+        } catch (Exception e) {
+            System.out.println("Could not find B+ Tree on disk...");
+            e.printStackTrace();
+        }
     }
 
     public void closeBTree() {
-        db.commit();//not sure if there is a difference
-        db.close();
+        //db.commit();//not sure if there is a difference
+        diskIndex.close();
     }
 
     public long getKeyTermAddress(String term) {

@@ -73,12 +73,17 @@
     //build index from disk storage button
     $(function() {
         $("#buildDiskIndex").on("click", function(evt) {
-            $.post("/buildindex", function(result) {
-                $(result).prependTo($("#maindiv"));
-            });
-            $("#submitButton").hide();
-            $("#dir").hide();
-            $("#diskIndex").hide();
+            let directoryValue = document.getElementById("directoryInput").value;
+            if(directoryValue == "") {
+                alert("Directory cannot be empty");
+            } else {
+                $.post("/buildindex", {directoryValue: directoryValue}, function(result) {
+                    $(result).prependTo($("#maindiv"));
+                });
+                $("#submitButton").hide();
+                $("#dir").hide();
+                $("#diskIndex").hide();
+            }
         });
     });
     // special queries button, input special query and it will output in the #maindiv
