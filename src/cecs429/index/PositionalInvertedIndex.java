@@ -44,7 +44,8 @@ public class PositionalInvertedIndex implements Index {
 				int prevDocId = postings.get(postings.size()-1).getDocumentId();
 				//this document hasn't been recorded yet
 				if (id > prevDocId) {
-					Posting posting = new Posting(id, position, title);//add the new document id to the list
+					Posting posting = new Posting(id, title);//add the new document id to the list
+					posting.addPosition(position);
 					postings.add(posting);//update postings with new posting
 				//this document exists, add new position
 				} else if (id == prevDocId) {
@@ -76,6 +77,14 @@ public class PositionalInvertedIndex implements Index {
 		return this.index.get(stemmed);
 	}
 
+	@Override
+	public List<Posting> getPostingsPositions(String token) {
+		//process token for valid characters
+		AdvancedTokenProcesser processor = new AdvancedTokenProcesser();
+		String stemmed = AdvancedTokenProcesser.stemToken(token);
+		return this.index.get(stemmed);
+	}
+
 	/**
 	 * Create a new posting list object for the index
 	 * @param id document id associated with the new posting
@@ -84,7 +93,8 @@ public class PositionalInvertedIndex implements Index {
 	 */
 	private List<Posting> createPosting(int id, int position,String title) {
 		List<Posting> postings = new ArrayList<>();
-		Posting posting = new Posting(id, position,title);//create a new posting
+		Posting posting = new Posting(id, title);//create a new posting
+		posting.addPosition(position);
 		postings.add(posting);
 		return postings;
 	}

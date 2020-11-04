@@ -128,7 +128,8 @@ public class PhraseLiteral implements Query {
 			//terms are in sequence
 			if (firstPosting.getPositions().get(a) == (secondPosting.getPositions().get(b) - distance)) {
 				if (posting == null) {
-					posting = new Posting(firstPosting.getDocumentId(), firstPosting.getPositions().get(a), firstPosting.getDocumentTitle());
+					posting = new Posting(firstPosting.getDocumentId(), firstPosting.getDocumentTitle());
+					posting.addPosition(firstPosting.getPositions().get(a));
 				} else {
 					posting.addPosition(firstPosting.getPositions().get(a));
 				}

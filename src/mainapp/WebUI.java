@@ -68,7 +68,7 @@ public class WebUI {
             String queryValue = request.queryParams("queryValue");
             List<Posting> postings = null;
             if (isDiskIndex) {
-                postings = index.getPostings(queryValue);
+                postings = index.getPostingsPositions(queryValue);
             } else {
                 postings = indexer.userQueryInput(corpus, index, kGramIndex, queryValue);
             }
@@ -143,8 +143,6 @@ public class WebUI {
 
     public static DiskPositionalIndex buildDiskPositionalIndex(String dir) {
         DiskPositionalIndex diskPositionalIndex = new DiskPositionalIndex(dir);
-        System.out.println(diskPositionalIndex.getPostings("&"));
-        //System.out.println(diskPositionalIndex.getVocabulary());
         return diskPositionalIndex;
     }
 
