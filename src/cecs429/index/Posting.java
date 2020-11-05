@@ -11,19 +11,17 @@ public class Posting {
 	private List<Integer> positions;
 	private String mDocumentTitle;
 	
-	public Posting(int documentId, int position, String title) {
+	public Posting(int documentId, String title) {
 
 		mDocumentId = documentId;
 		mDocumentTitle = title;
 		positions = new ArrayList<>();
-		positions.add(position);
 	}
 
-	public Posting(int documentId, int position) {
+	public Posting(int documentId) {
 		mDocumentId = documentId;
 		mDocumentTitle = "Document ID: " + documentId;
 		positions = new ArrayList<>();
-		positions.add(position);
 	}
 
 	public int getDocumentId() {

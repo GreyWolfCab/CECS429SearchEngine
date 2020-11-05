@@ -9,6 +9,8 @@ public interface Index  {
 	 */
 	List<Posting> getPostings(String term);
 
+	List<Posting> getPostingsPositions(String term);
+
 	/**
 	 * A (sorted) list of all terms in the index vocabulary.
 	 */

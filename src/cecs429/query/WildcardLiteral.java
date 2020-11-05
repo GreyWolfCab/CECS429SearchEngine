@@ -33,7 +33,6 @@ public class WildcardLiteral implements Query {
         List<String> grams = kGramIndex.getGrams(Indexer.K_GRAM_LIMIT, mTerm);
         //retrieve the common terms among all grams
         Set<String> terms = intersectGramPostings(grams, kGramIndex);
-        System.out.println(index.getPostings("cano"));
         //post filter step
         List<Posting> filteredTerm = postFilterStep(grams, terms, index);
         //return the postings for the most likely term
@@ -89,8 +88,8 @@ public class WildcardLiteral implements Query {
                 if (!validTerm[q]) {//if a gram was not found
                     break;//this is not the correct term
                 } else if (validTerm[q] && q == validTerm.length-1) {//if every gram was found
-                    if (index.getPostings(term) != null) {
-                        mergedPostings = orMergePosting(mergedPostings, index.getPostings(term));
+                    if (index.getPostingsPositions(term) != null) {
+                        mergedPostings = orMergePosting(mergedPostings, index.getPostingsPositions(term));
                     }
                 }
             }
