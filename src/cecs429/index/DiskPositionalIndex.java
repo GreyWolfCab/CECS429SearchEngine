@@ -27,6 +27,21 @@ public class DiskPositionalIndex implements Index {
         }
     }
 
+    public double getDocumentWeight(int docId) {
+
+        try (RandomAccessFile raf = new RandomAccessFile(indexLocation + "\\docWeights.bin", "r")) {
+
+            raf.seek(docId * 8);//account for 8-byte offset
+            return raf.readDouble();
+
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
+
+        return -1;
+
+    }
+
     public long getKeyTermAddress(String term) {
         if (map.get(term) == null) {
             return -1;
@@ -50,7 +65,7 @@ public class DiskPositionalIndex implements Index {
                 docId += raf.readInt();//collect next docId
                 int totalPositions = raf.readInt();//collect term frequency in the document
                 Posting post = null;
-                System.out.println("Doc Id : " + docId + " Total positions: " + totalPositions);
+                System.out.println("Doc Id : " + docId + " Document Weight: " + getDocumentWeight(docId) + " Total positions: " + totalPositions);
 
                 if (withPositions) {
                     int position = 0;
@@ -66,11 +81,11 @@ public class DiskPositionalIndex implements Index {
                     }
                 } else {
                     System.out.println("From " + raf.getFilePointer());
+                    //each position represents 4 bytes so (* 4) to account for this offset
                     raf.seek(raf.getFilePointer() + (totalPositions * 4));
                     post = new Posting(docId);
                     System.out.println("Skipping to " + raf.getFilePointer());
                 }
-
 
                 postings.add(post);
                 System.out.println();

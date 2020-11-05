@@ -14,10 +14,7 @@ public class DiskIndexWriter {
     public ArrayList<Long> writeIndex(Index index, String indexLocation) throws IOException {
 
         //create an index folder in the corpus
-        File directory = new File(indexLocation + "\\index");
-        if (!directory.exists()) {
-            directory.mkdirs();
-        }
+        createIndexFolder(indexLocation);
 
         DB db = DBMaker.fileDB(indexLocation + "\\index\\file.db").make();
         BTreeMap<String, Long> map = db.treeMap("map")
@@ -82,6 +79,38 @@ public class DiskIndexWriter {
         db.close();
 
         return termAddresses;
+
+    }
+
+    public void writeDocumentWeights(ArrayList<Double> documentWeights, String indexLocation) {
+
+        createIndexFolder(indexLocation);
+
+        //create docWeights.bin file to act as index on disk
+        try (DataOutputStream dout = new DataOutputStream(
+                new BufferedOutputStream(
+                        new FileOutputStream(indexLocation + "\\index\\docWeights.bin")))) {
+
+            for (Double documentWeight : documentWeights) {//iterate through every document weight in doc id order
+
+                dout.writeDouble(documentWeight);//write doc weight to disk (8-byte double)
+
+            }
+
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
+
+    }
+
+    private void createIndexFolder(String indexLocation) {
+
+        //create an index folder in the corpus
+        File directory = new File(indexLocation + "\\index");
+        if (!directory.exists()) {
+            directory.mkdirs();
+
+        }
 
     }
 

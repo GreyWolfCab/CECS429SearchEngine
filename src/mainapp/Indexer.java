@@ -3,15 +3,14 @@ package mainapp;
 import cecs429.documents.DirectoryCorpus;
 import cecs429.documents.Document;
 import cecs429.documents.DocumentCorpus;
-import cecs429.index.Index;
-import cecs429.index.KGramIndex;
-import cecs429.index.PositionalInvertedIndex;
-import cecs429.index.Posting;
+import cecs429.index.*;
 import cecs429.query.BooleanQueryParser;
 import cecs429.text.AdvancedTokenProcesser;
 import cecs429.text.EnglishTokenStream;
 
 import java.nio.file.*;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Scanner;
 import java.io.IOException;
@@ -61,23 +60,29 @@ public class Indexer {
     private void runMainApp() {
 
         DocumentCorpus corpus = requestDirectory("");//collect all documents from a directory
+        String indexLocation = "Know Where";
 
         KGramIndex kGramIndex = new KGramIndex();//build k-gram from 1 to limit sized grams
-        Index index = timeIndexBuild(corpus, kGramIndex);//build the index and print how long it takes
+        Index index = timeIndexBuild(corpus, kGramIndex, indexLocation);//build the index and print how long it takes
 
         userQuery(corpus, index, kGramIndex);//handle user input
 
     }
 
-    public static Index indexCorpus(DocumentCorpus corpus, KGramIndex kGramIndex) {
+    public static Index indexCorpus(DocumentCorpus corpus, KGramIndex kGramIndex, String indexLocation) {
 
         PositionalInvertedIndex index = new PositionalInvertedIndex();//create positional index
         AdvancedTokenProcesser processor = new AdvancedTokenProcesser();//create token processor
+
+        DiskIndexWriter diskIndexWriter = new DiskIndexWriter();
+        ArrayList<Double> documentWeight = new ArrayList<>();
 
         // Get all the documents in the corpus by calling GetDocuments().
         Iterable<Document> documents = corpus.getDocuments();
 
         for (Document docs : documents) {//iterate through every valid document found in the corpus
+
+            HashMap<String, Integer> termFrequency = new HashMap<>();//term frequency of every term in a document
 
             // Tokenize the document's content by constructing an EnglishTokenStream around the document's content.
             EnglishTokenStream stream = new EnglishTokenStream(docs.getContent());
@@ -88,16 +93,37 @@ public class Indexer {
             for (String token : tokens) {
 
                 List<String> words = processor.processToken(token);//convert a token to indexable terms
-                for (int i = 0; i < words.size(); i++) {
+                for (int i = 0; i < words.size(); i++) {//iterate through all unstemmed tokens
                     kGramIndex.addGram(K_GRAM_LIMIT, words.get(i));//build k-gram off of un-stemmed tokens
                     words.set(i, AdvancedTokenProcesser.stemToken(words.get(i)));
+                    if (termFrequency.containsKey(words.get(i))) {//if term is duplicate
+                        int prevFrequency = termFrequency.get(words.get(i));
+                        termFrequency.put(words.get(i), prevFrequency + 1);//increment term frequency counter
+                    } else {
+                        termFrequency.put(words.get(i), 1);//add new term to frequency counter
+                    }
                 }
                 index.addTerm(words, docs.getId(), wordPosition, docs.getTitle());//add word data to index
                 wordPosition++;//increment word position
 
             }
 
+            double sumTermWeights = 0;//sum of term weights
+            ArrayList<Integer> tf_d = new ArrayList<>(termFrequency.values());//every term frequency in the document
+
+            for (int i = 0; i < tf_d.size(); i++) {//iterate through all term frequencies
+                double w_dt = 1 + Math.log(tf_d.get(i));//weight of specific term in a document
+                w_dt = Math.pow(w_dt, 2);
+                sumTermWeights += w_dt;//summation of w_dt^2
+            }
+            //do math to get L_d
+            double l_d = Math.sqrt(sumTermWeights);//square root normalized w_dt's
+            documentWeight.add(l_d);
+
         }
+
+        //write document weights to disk
+        diskIndexWriter.writeDocumentWeights(documentWeight, indexLocation);
 
         return index;
 
@@ -136,8 +162,7 @@ public class Indexer {
 
 
     public String userSQueryStem (String queryInput){
-        String stemmedTerm = AdvancedTokenProcesser.stemToken(queryInput.substring(6));
-        return stemmedTerm;
+        return AdvancedTokenProcesser.stemToken(queryInput.substring(6));
     }
 
     public List<String> userSQueryVocab () {
@@ -159,7 +184,6 @@ public class Indexer {
             }
             System.out.println("\nTotal Documents: " + postings.size());//print total documents found
 
-            queryInput = "";
         }
         return postings;
     }
@@ -199,7 +223,7 @@ public class Indexer {
                         System.out.println("Resetting the directory...");
                         corpus = requestDirectory(input.substring(7));//collect all documents from a directory
                         kGramIndex = new KGramIndex();
-                        index = timeIndexBuild(corpus, kGramIndex);
+                        index = timeIndexBuild(corpus, kGramIndex, input.substring(7));
                         //print the first 1000 terms in the vocabulary
                     } else if (input.length() == 6 && input.substring(1, 6).equals("vocab")) {
                         printIndexVocab(index);
@@ -302,14 +326,14 @@ public class Indexer {
      * @param corpus the corpus to build an index from
      * @return the completed index
      */
-    public Index timeIndexBuild(DocumentCorpus corpus, KGramIndex kGramIndex) {
+    public Index timeIndexBuild(DocumentCorpus corpus, KGramIndex kGramIndex, String indexLocation) {
 
 
         System.out.println("Starting to build index...");
 
         //measure how long it takes to build the index
         long startTime = System.nanoTime();
-        index = indexCorpus(corpus, kGramIndex);
+        index = indexCorpus(corpus, kGramIndex, indexLocation);
         long stopTime = System.nanoTime();
         double indexSeconds = (double)(stopTime - startTime) / 1_000_000_000.0;
         System.out.println("Done!\n");

@@ -30,7 +30,7 @@ public class WebUI {
 
         System.out.println("http://localhost:4567/");
         Spark.staticFileLocation("public_html");
-        /** testing environment: http://localhost:4567/ **/
+        /* testing environment: http://localhost:4567/ */
         // creates thymeleaf template for index.html at /
         Spark.get("/", (req, res) -> {
             HashMap<String, Object> model =  new HashMap<>();
@@ -49,15 +49,14 @@ public class WebUI {
             String directoryValue = request.queryParams("directoryValue");
             dir = directoryValue;
             corpus = indexer.requestDirectory(dir);
-            index = indexer.timeIndexBuild(corpus, kGramIndex);
+            index = indexer.timeIndexBuild(corpus, kGramIndex, dir);
             ArrayList<Long> addresses = diskIndexWriter.writeIndex(index, dir);//calls the writer of index to disk
             return "<div style=\"font-size: 12px; position:\">Files Indexed From: " + directoryValue + " </br>Time to Index:"+ indexer.getTimeToBuildIndex() +  " seconds</div></br>";
         });
 
         Spark.post("/buildindex", (request, response) -> {
             isDiskIndex = true;
-            String directoryValue = request.queryParams("directoryValue");
-            dir = directoryValue;
+            dir = request.queryParams("directoryValue");
             index = buildDiskPositionalIndex(dir);
             return "<div style=\"font-size: 12px; position:\">Built Index from disk storage</div>";
         });
@@ -66,7 +65,7 @@ public class WebUI {
 
         Spark.post("/search", (request, response) -> {
             String queryValue = request.queryParams("queryValue");
-            List<Posting> postings = null;
+            List<Posting> postings;
             if (isDiskIndex) {
                 postings = index.getPostingsPositions(queryValue);
             } else {
@@ -135,7 +134,7 @@ public class WebUI {
                 System.out.println("Resetting the directory...");
                 dir = squeryValue.substring(7);
                 corpus = indexer.requestDirectory(dir);
-                index = indexer.timeIndexBuild(corpus, kGramIndex);
+                index = indexer.timeIndexBuild(corpus, kGramIndex, dir);
                 return "<div style=\"font-size: 12px\">New Files Indexed From: " + dir + "</div> </br> <div style=\"font-size: 10px\">Time to Index:"+ indexer.getTimeToBuildIndex() +  " seconds</div>";
                 //print the first 1000 terms in the vocabulary
             } else if (squeryValue.length() == 6 && squeryValue.substring(1, 6).equals("vocab")) {
@@ -153,8 +152,7 @@ public class WebUI {
     }
 
     public static DiskPositionalIndex buildDiskPositionalIndex(String dir) {
-        DiskPositionalIndex diskPositionalIndex = new DiskPositionalIndex(dir);
-        return diskPositionalIndex;
+        return new DiskPositionalIndex(dir);
     }
 
 }
