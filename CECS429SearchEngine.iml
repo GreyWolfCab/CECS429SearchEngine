@@ -50,5 +50,14 @@
       </library>
     </orderEntry>
     <orderEntry type="library" name="org.mapdb:mapdb:3.0.8" level="project" />
+    <orderEntry type="module-library" exported="">
+      <library>
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/../../slf4j-nop-1.7.9.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
   </component>
 </module>

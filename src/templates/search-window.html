@@ -18,7 +18,10 @@
             Query:
             <input id="queryInput"type="text" name="search-txt" value="" autocomplete="off"/>
 
-            <a id="searchButton" >SEARCH</a>
+            <button id="searchButton" >SEARCH</button>
+            <div>
+                <input type="checkbox" id="ranked-search" name="ranked-search" value="Ranked Query" > Ranked Query </input>
+            </div>
         </div>
         <div id="search-contents" style=" font-size: 12px;height: 750px; overflow-x: scroll;"></div>
     </div>
@@ -39,9 +42,17 @@
             if(queryValue == ""){
                 alert("query cannot be empty")
             } else {
-                $.post("/search", {queryValue: queryValue}, function(result){
-                    $(result).prependTo($("#search-contents"));
-                });
+                if(document.getElementById("ranked-search").checked == false) {
+                    $.post("/search", {queryValue: queryValue}, function(result){
+                        $(result).prependTo($("#search-contents"));
+                    });
+                } else {
+                    alert("you want a ranked query, but we don't have that feature yet")
+                    // $.post("/ranked-search", {queryValue: queryValue}, function(result){
+                    //     $(result).prependTo($("#search-contents"));
+                    // });
+                }
+
             }
         })
     })

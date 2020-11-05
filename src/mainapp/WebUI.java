@@ -74,6 +74,7 @@ public class WebUI {
             }
 
             return "<div><b>Query: </b>" + queryValue +
+                    "<div>Total Documents: " + postings.size() + "</div></div></br>" +
                     "<table style=\"width:100%\">\n" +
                     "    <tr>\n" +
                     "        <th>Document ID</th>\n" +
@@ -81,8 +82,18 @@ public class WebUI {
                     "        <th>Positions</th>\n" +
                     "    </tr>\n" +
                          postings.toString() +
-                    "</table>" +
-                    "<div>Total Documents: " + postings.size() + "</div></div></br>" ;
+                    "</table>"
+                     ;
+        });
+
+        // post ranked query values based on query inputs from client (outputs as html table)
+
+        Spark.post("/ranked-search", (request, response) -> {
+            String queryValue = request.queryParams("queryValue");
+            /**
+             * TODO: add ranked query logic once finished
+             * **/
+            return "<div> ranked retrieval of postings.toString() </div>";
         });
 
         // posts document contents as a div
