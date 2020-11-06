@@ -47,10 +47,9 @@
                         $(result).prependTo($("#search-contents"));
                     });
                 } else {
-                    alert("you want a ranked query, but we don't have that feature yet")
-                    // $.post("/ranked-search", {queryValue: queryValue}, function(result){
-                    //     $(result).prependTo($("#search-contents"));
-                    // });
+                    $.post("/ranked-search", {queryValue: queryValue}, function(result){
+                        $(result).prependTo($("#search-contents"));
+                    });
                 }
 
             }

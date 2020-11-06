@@ -124,6 +124,7 @@ public class Indexer {
 
         //write document weights to disk
         diskIndexWriter.writeDocumentWeights(documentWeight, indexLocation);
+        diskIndexWriter.writeKGramIndex(kGramIndex, indexLocation);
 
         return index;
 
@@ -151,7 +152,7 @@ public class Indexer {
         }
 
         //set the path to collect all the documents
-        Path currentWorkingPath = Paths.get(path);//Sample: "C:\\Users\\rcthe\\Downloads\\School\\CECS 429 SEO\\testing"
+        Path currentWorkingPath = Paths.get(path);
 
         //generate corpus based on files found at the directory
         corpus = DirectoryCorpus.loadTextDirectory(currentWorkingPath);
@@ -169,10 +170,11 @@ public class Indexer {
         return index.getVocabulary();
     }
 
-    public static List<Posting> userQueryInput(DocumentCorpus corpus, Index index, KGramIndex kGramIndex, String queryInput) {
+    public static List<Posting> userBooleanQueryInput(DocumentCorpus corpus, Index index, KGramIndex kGramIndex, String queryInput) {
         BooleanQueryParser query = new BooleanQueryParser();
         List<Posting> postings = query.parseQuery(queryInput).getPostings(index, kGramIndex);
 
+        corpus.getDocuments();//corpus doesn't exist if we don't include this line. (I have no idea)
         if (postings == null) {//term not found
             System.out.println("No such term found...");
         } else {//the term is in the index

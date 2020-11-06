@@ -7,7 +7,7 @@ public class KGramIndex {
     private HashMap<String, Set<String>> mIndex;
 
     public KGramIndex() {
-        mIndex = new HashMap<String, Set<String>>();
+        mIndex = new HashMap<>();
     }
 
     public void addGram(int gramLimit, String term) {
@@ -45,6 +45,12 @@ public class KGramIndex {
             }
 
         }
+
+    }
+
+    public void addGramTerms(String gram, String[] terms) {
+
+        mIndex.put(gram, new HashSet<>(Arrays.asList(terms)));
 
     }
 

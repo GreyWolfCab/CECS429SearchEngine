@@ -42,6 +42,31 @@ public class DiskPositionalIndex implements Index {
 
     }
 
+    public KGramIndex loadDiskKGramIndex() {
+
+        KGramIndex kGramIndex = new KGramIndex();
+
+        try (BufferedReader reader = new BufferedReader(
+                new FileReader (indexLocation + "\\kGramIndex.txt"))) {
+
+            String line = reader.readLine();
+            int i = 0;
+            while (line != null) {
+                String gram = line.substring(0, line.indexOf('-'));
+                String terms = line.substring(line.indexOf('-') + 1);
+                kGramIndex.addGramTerms(gram, terms.split(","));
+                line = reader.readLine();
+
+            }
+
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
+
+        return kGramIndex;
+
+    }
+
     public long getKeyTermAddress(String term) {
         if (map.get(term) == null) {
             return -1;
@@ -57,38 +82,30 @@ public class DiskPositionalIndex implements Index {
         try (RandomAccessFile raf = new RandomAccessFile(indexLocation + "\\postings.bin", "r")) {
 
             raf.seek(address);//skip to the terms address
-            System.out.println("At position: " + address);
             int termFrequency = raf.readInt();//collect how many documents the term appears in
-            System.out.println("Term Document frequency: " + termFrequency);
             int docId = 0;
-            for (int i = 0; i < termFrequency; i++) {
+            for (int i = 0; i < termFrequency; i++) {//iterate through every document associated with the term
                 docId += raf.readInt();//collect next docId
                 int totalPositions = raf.readInt();//collect term frequency in the document
-                Posting post = null;
-                System.out.println("Doc Id : " + docId + " Document Weight: " + getDocumentWeight(docId) + " Total positions: " + totalPositions);
-
-                if (withPositions) {
+                Posting post = null;//store a posting
+                if (withPositions) {//create posting with Positions included
                     int position = 0;
-                    for (int j = 0; j < totalPositions; j++) {
-                        position += raf.readInt();
-                        if (post == null) {
-                            post = new Posting(docId);
-                            post.addPosition(position);
+                    for (int j = 0; j < totalPositions; j++) {//iterate through term frequency in the document
+                        position += raf.readInt();//read single position
+                        if (post == null) {//if posting doesn't exist yet
+                            post = new Posting(docId);//create new posting
+                            post.addPosition(position);//add position to posting
                         } else {
-                            post.addPosition(position);
+                            post.addPosition(position);//add position to posting
                         }
-                        System.out.print(position + ", ");
                     }
-                } else {
-                    System.out.println("From " + raf.getFilePointer());
+                } else {//create posting without positions
                     //each position represents 4 bytes so (* 4) to account for this offset
-                    raf.seek(raf.getFilePointer() + (totalPositions * 4));
-                    post = new Posting(docId);
-                    System.out.println("Skipping to " + raf.getFilePointer());
+                    raf.seek(raf.getFilePointer() + (totalPositions * 4));//skip positions bytes
+                    post = new Posting(docId);//create new posting
                 }
 
-                postings.add(post);
-                System.out.println();
+                postings.add(post);//add new post to postings list
             }
 
         } catch (IOException ioe) {

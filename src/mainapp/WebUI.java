@@ -57,7 +57,8 @@ public class WebUI {
         Spark.post("/buildindex", (request, response) -> {
             isDiskIndex = true;
             dir = request.queryParams("directoryValue");
-            index = buildDiskPositionalIndex(dir);
+            corpus = indexer.requestDirectory(dir);
+            index = buildDiskPositionalIndex(dir);//builds positional index and k-gram index
             return "<div style=\"font-size: 12px; position:\">Built Index from disk storage</div>";
         });
 
@@ -66,11 +67,7 @@ public class WebUI {
         Spark.post("/search", (request, response) -> {
             String queryValue = request.queryParams("queryValue");
             List<Posting> postings;
-            if (isDiskIndex) {
-                postings = index.getPostingsPositions(queryValue);
-            } else {
-                postings = indexer.userQueryInput(corpus, index, kGramIndex, queryValue);
-            }
+            postings = indexer.userBooleanQueryInput(corpus, index, kGramIndex, queryValue);
 
             return "<div><b>Query: </b>" + queryValue +
                     "<div>Total Documents: " + postings.size() + "</div></div></br>" +
@@ -152,7 +149,10 @@ public class WebUI {
     }
 
     public static DiskPositionalIndex buildDiskPositionalIndex(String dir) {
-        return new DiskPositionalIndex(dir);
+
+        DiskPositionalIndex index = new DiskPositionalIndex(dir);
+        kGramIndex = index.loadDiskKGramIndex();
+        return index;
     }
 
 }

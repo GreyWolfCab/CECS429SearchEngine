@@ -8,6 +8,7 @@ import org.mapdb.Serializer;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class DiskIndexWriter {
 
@@ -94,6 +95,41 @@ public class DiskIndexWriter {
             for (Double documentWeight : documentWeights) {//iterate through every document weight in doc id order
 
                 dout.writeDouble(documentWeight);//write doc weight to disk (8-byte double)
+
+            }
+
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
+
+    }
+
+    public void writeKGramIndex(KGramIndex kGramIndex, String indexLocation) {
+
+        createIndexFolder(indexLocation);
+
+        try (BufferedWriter bw = new BufferedWriter(
+                new OutputStreamWriter(
+                        new FileOutputStream(indexLocation + "\\index\\kGramIndex.txt")))) {
+
+            List<String> grams = kGramIndex.getGrams();
+            StringBuilder text;
+
+            for (String gram : grams) {
+                text = new StringBuilder(gram + "-");
+
+                Set<String> terms = kGramIndex.getTerms(gram);
+                int i = 0;
+                for (String term : terms) {
+                    text.append(term);
+                    if (i < terms.size()-1) {
+                        text.append(",");
+                    }
+                    i++;
+                }
+
+                bw.write(text.toString());
+                bw.newLine();
 
             }
 
