@@ -69,6 +69,20 @@ public class WebUI {
             List<Posting> postings;
             postings = indexer.userBooleanQueryInput(corpus, index, kGramIndex, queryValue);
 
+            StringBuilder postingsRows = new StringBuilder();
+
+            for (Posting post : postings) {//include document titles for each returned posting
+
+                String title = corpus.getDocument(post.getDocumentId()).getTitle();
+                String row = "    <tr>\n" +
+                        "        <td>"+post.getDocumentId()+"</td>\n" +
+                        "        <td><button id=\"" + post.getDocumentId() + "\" onClick=\"docClicked(this.id)\" >"+title+"</button></td>\n" +
+                        "        <td>"+post.getPositions()+"</td>\n" +
+                        "    </tr>\n";
+                postingsRows.append(row);
+
+            }
+
             return "<div><b>Query: </b>" + queryValue +
                     "<div>Total Documents: " + postings.size() + "</div></div></br>" +
                     "<table style=\"width:100%\">\n" +
@@ -77,7 +91,7 @@ public class WebUI {
                     "        <th>Document Title</th>\n" +
                     "        <th>Positions</th>\n" +
                     "    </tr>\n" +
-                         postings.toString() +
+                         postingsRows.toString() +
                     "</table>"
                      ;
         });
