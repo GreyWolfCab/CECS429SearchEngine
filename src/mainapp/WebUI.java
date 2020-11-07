@@ -25,6 +25,7 @@ public class WebUI {
     public static DiskIndexWriter diskIndexWriter = new DiskIndexWriter();
 
     public static boolean isDiskIndex = false;
+    private static double buildIndexTime = 0;
 
     public static void main(String args[]) {
 
@@ -51,7 +52,7 @@ public class WebUI {
             corpus = indexer.requestDirectory(dir);
             index = indexer.timeIndexBuild(corpus, kGramIndex, dir);
             ArrayList<Long> addresses = diskIndexWriter.writeIndex(index, dir);//calls the writer of index to disk
-            return "<div style=\"font-size: 12px; position:\">Files Indexed From: " + directoryValue + " </br>Time to Index:"+ indexer.getTimeToBuildIndex() +  " seconds</div></br>";
+            return "<div style=\"font-size: 12px; position:\">Files Indexed From: " + directoryValue + " </br>Time to Index: "+ indexer.getTimeToBuildIndex() +  " seconds</div></br>";
         });
 
         Spark.post("/buildindex", (request, response) -> {
@@ -59,7 +60,7 @@ public class WebUI {
             dir = request.queryParams("directoryValue");
             corpus = indexer.requestDirectory(dir);
             index = buildDiskPositionalIndex(dir);//builds positional index and k-gram index
-            return "<div style=\"font-size: 12px; position:\">Built Index from disk storage</div>";
+            return "<div style=\"font-size: 12px; position:\">Built Disk Index From: " + dir + " </br>Time to Index: " + buildIndexTime + " seconds</div>";
         });
 
         // posts query values based on query inputs from client (outputs as html table)
@@ -164,8 +165,15 @@ public class WebUI {
 
     public static DiskPositionalIndex buildDiskPositionalIndex(String dir) {
 
+        //measure how long it takes to build the index
+        long startTime = System.nanoTime();
         DiskPositionalIndex index = new DiskPositionalIndex(dir);
         kGramIndex = index.loadDiskKGramIndex();
+        long stopTime = System.nanoTime();
+        buildIndexTime = (double)(stopTime - startTime) / 1_000_000_000.0;
+        System.out.println("Done!\n");
+        System.out.println("Time to build index: " + buildIndexTime + " seconds");
+
         return index;
     }
 
