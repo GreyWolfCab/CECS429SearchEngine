@@ -152,4 +152,38 @@ public class DiskPositionalIndex implements Index {
         }
         return vocab;
     }
+
+    /**
+     * given a term and a docId, return the terms frequency within the specified document or -1
+     * @param term
+     * @param targetDocId
+     * @return
+     */
+    public int getTermDocumentFrequency(String term, int targetDocId) {
+
+        int t_fd = -1;
+
+        try (RandomAccessFile raf = new RandomAccessFile(indexLocation + "\\postings.bin", "r")) {
+
+            raf.seek(getKeyTermAddress(term));
+            int termFrequency = raf.readInt();//collect how many documents the term appears in
+            int docId = 0;
+            for (int i = 0; i < termFrequency; i++) {
+                //iterate through every document associated with the term
+                docId += raf.readInt();//collect next docId
+                int totalPositions = raf.readInt();//collect term frequency in the document
+                if (targetDocId == docId) {//the term exists in the target document
+                    t_fd = totalPositions;//store the term frequency
+                    break;
+                }
+                raf.seek(raf.getFilePointer() + (totalPositions * 4));//skip positions
+            }
+
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
+
+        return t_fd;
+
+    }
 }
