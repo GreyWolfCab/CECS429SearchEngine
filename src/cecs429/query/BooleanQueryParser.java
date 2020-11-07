@@ -194,16 +194,18 @@ public class BooleanQueryParser {
 					if(i == 1){
 						// second term is the NEAR/k, extract k
 						k = Integer.parseInt(splitNEAR[i].substring(5));
-					}
-					// check for wildcard
-					int wildCard = splitNEAR[i].indexOf('*');
-					if(wildCard >= 0) {
-						// wildcard literal
-						nearTerms.add(new WildcardLiteral(splitNEAR[i]));
 					} else {
-						// term literal
-						nearTerms.add(new TermLiteral(splitNEAR[i]));
+						// check for wildcard
+						int wildCard = splitNEAR[i].indexOf('*');
+						if(wildCard >= 0) {
+							// wildcard literal
+							nearTerms.add(new WildcardLiteral(splitNEAR[i]));
+						} else {
+							// term literal
+							nearTerms.add(new TermLiteral(splitNEAR[i]));
+						}
 					}
+
 				}
 
 				return new Literal(

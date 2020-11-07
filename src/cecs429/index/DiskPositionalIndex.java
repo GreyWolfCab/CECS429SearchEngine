@@ -112,20 +112,35 @@ public class DiskPositionalIndex implements Index {
             ioe.printStackTrace();
         }
 
+        if (postings.size() == 0) {
+            return null;
+        }
+
         return postings;
     }
 
     @Override
     public List<Posting> getPostings(String term) {
+        List<Posting> result = new ArrayList<>();
 
-        String stemmed = AdvancedTokenProcesser.stemToken(term);//stem the term
-        return accessTermData(getKeyTermAddress(stemmed), false);
+        if (getKeyTermAddress(term) != -1) {//term doesn't exist
+            result.addAll(accessTermData(getKeyTermAddress(term), false));
+        }
+
+        return result;
     }
 
     @Override
     public List<Posting> getPostingsPositions(String term) {
-        String stemmed = AdvancedTokenProcesser.stemToken(term);//stem the term
-        return accessTermData(getKeyTermAddress(stemmed), true);
+
+        List<Posting> result = new ArrayList<>();
+
+        if (getKeyTermAddress(term) != -1) {//term doesn't exist
+            result.addAll(accessTermData(getKeyTermAddress(term), true));
+        }
+
+        return result;
+
     }
 
     @Override
