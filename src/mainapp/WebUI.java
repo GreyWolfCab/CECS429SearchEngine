@@ -7,12 +7,11 @@ import cecs429.index.*;
 import spark.ModelAndView;
 import spark.Spark;
 import spark.template.thymeleaf.ThymeleafTemplateEngine;
+import testing.Accumulator;
 
 import java.io.IOException;
 import java.io.Reader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 import static java.util.stream.Collectors.joining;
 
@@ -101,10 +100,32 @@ public class WebUI {
 
         Spark.post("/ranked-search", (request, response) -> {
             String queryValue = request.queryParams("queryValue");
-            /**
-             * TODO: add ranked query logic once finished
-             * **/
-            return "<div> ranked retrieval of postings.toString() </div>";
+            Queue<Accumulator> pq = indexer.userRankedQueryInput(corpus, (DiskPositionalIndex) index, kGramIndex, queryValue);
+            StringBuilder postingsRows = new StringBuilder();
+
+            for (Accumulator acc : pq){
+                String title = corpus.getDocument(acc.getDocId()).getTitle();
+                int docId = acc.getDocId();
+                double value = acc.getA_d();
+                String row = "    <tr>\n" +
+                        "        <td>"+docId+"</td>\n" +
+                        "        <td><button id=\"" + docId + "\" onClick=\"docClicked(this.id)\" >"+title+"</button></td>\n" +
+                        "        <td>"+value+"</td>\n" +
+                        "    </tr>\n";
+                postingsRows.append(row);
+            }
+
+            return "<div><b>Top 10 Results for: </b>" + queryValue +
+                    "<div>Total Documents: " + pq.size() + "</div></div></br>" +
+                    "<table style=\"width:100%\">\n" +
+                    "    <tr>\n" +
+                    "        <th>Document Id</th>\n" +
+                    "        <th>Document Title</th>\n" +
+                    "        <th>Score</th>\n" +
+                    "    </tr>\n" +
+                    postingsRows.toString() +
+                    "</table>"
+                    ;
         });
 
         // posts document contents as a div

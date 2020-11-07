@@ -5,14 +5,13 @@ import cecs429.documents.Document;
 import cecs429.documents.DocumentCorpus;
 import cecs429.index.*;
 import cecs429.query.BooleanQueryParser;
+import cecs429.query.TermLiteral;
 import cecs429.text.AdvancedTokenProcesser;
 import cecs429.text.EnglishTokenStream;
+import testing.Accumulator;
 
 import java.nio.file.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 import java.io.IOException;
 import java.io.Reader;
 
@@ -189,6 +188,56 @@ public class Indexer {
         }
         return postings;
     }
+
+
+    public static Queue<Accumulator> userRankedQueryInput(DocumentCorpus corpus, DiskPositionalIndex index, KGramIndex kGramIndex, String queryInput){
+        double n = corpus.getCorpusSize();
+        List<TermLiteral> termLiterals = new ArrayList<TermLiteral>();
+        int counter = 0;
+        List<Posting> postings = new ArrayList<Posting>();
+        List<Accumulator> accumulators = new ArrayList<Accumulator>();
+        HashMap<Posting, Double> hm = new HashMap<>();
+        Queue<Accumulator> pq = new PriorityQueue<>(10);
+
+        String[] terms = queryInput.split(" ");
+
+        for (String term : terms) { // for each term in query
+            termLiterals.add(new TermLiteral(term));
+            postings = termLiterals.get(counter).getPostings(index, kGramIndex);
+            double w_qt = Math.log(n/postings.size());  // calculate wqt = ln(1 + N/dft)
+
+            for(Posting p : postings){ // for each document in postings list
+                Document d = corpus.getDocument(p.getDocumentId());
+
+                /**
+                 * TODO: find term frequency in p Posting (tf_td)
+                 * **/
+
+                double tf_td = 0;
+                double w_dt = 1 + Math.log(tf_td);
+                double a_d = (w_dt * w_qt);
+                hm.put(p, a_d);
+                //accumulators.add(new Accumulator(d.getId(),a_d));
+            }
+        }
+
+        hm.forEach((key,value) -> accumulators.add(new Accumulator(key.getDocumentId(),value)));
+
+        for (Accumulator acc : accumulators){
+            // only retain the top 10
+            double value = acc.getA_d() / index.getDocumentWeight(acc.getDocId());
+            acc.setA_d(value);
+            if(pq.size() < 10 || pq.peek().getA_d() < acc.getA_d()){
+                if(pq.size() == 10){
+                    pq.remove();
+                }
+                pq.add(acc);
+            }
+        }
+
+        return pq;
+    }
+
 
     /**
      * method for collecting a users query via the console
