@@ -209,15 +209,10 @@ public class Indexer {
             for(Posting p : postings){ // for each document in postings list
                 Document d = corpus.getDocument(p.getDocumentId());
 
-                /**
-                 * TODO: find term frequency in p Posting (tf_td)
-                 * **/
-
-                double tf_td = 0;
+                double tf_td = index.getTermDocumentFrequency(term, d.getId());
                 double w_dt = 1 + Math.log(tf_td);
                 double a_d = (w_dt * w_qt);
                 hm.put(p, a_d);
-                //accumulators.add(new Accumulator(d.getId(),a_d));
             }
         }
 
