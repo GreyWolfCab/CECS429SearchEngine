@@ -237,6 +237,43 @@ public class Indexer {
                 .min().orElse(Integer.MAX_VALUE);
     }
 
+    public static double getJaccardCoefficient(String firstTerm, String secondTerm, KGramIndex kGramIndex) {
+
+        //build list of grams for both terms
+        List<String> firstGrams = new ArrayList<>();
+        List<String> secondGrams = new ArrayList<>();
+
+        for (int i = Indexer.K_GRAM_LIMIT; i > 0; i--) {//get every possible gram for both terms
+            firstGrams.addAll(kGramIndex.getGrams(i, firstTerm));
+            secondGrams.addAll(kGramIndex.getGrams(i, secondTerm));
+        }
+
+        Collections.sort(firstGrams);
+        Collections.sort(secondGrams);//sort the gram lists
+        int similarGrams = 0;
+        int i = 0, j = 0;
+
+        while (i < firstGrams.size() && j < secondGrams.size()) {//iterate through both lists until one ends
+
+            int match = firstGrams.get(i).compareTo(secondGrams.get(j));//compare current grams
+
+            if (match == 0) {//count how many grams match between both terms
+                similarGrams++;
+                i++;
+                j++;
+            } else if (match < 0) {
+                i++;
+            } else {
+                j++;
+            }
+
+        }
+
+        //Jaccard Coefficient = (A⋂B) / A + B - (A⋂B)
+        return ((double)similarGrams / (double)(firstGrams.size() + secondGrams.size() - similarGrams));
+
+    }
+
     public static Queue<Accumulator> userRankedQueryInput(DocumentCorpus corpus, DiskPositionalIndex index, KGramIndex kGramIndex, String queryInput){
         double n = corpus.getCorpusSize();
         List<TermLiteral> termLiterals = new ArrayList<TermLiteral>();
@@ -251,20 +288,29 @@ public class Indexer {
         for (String term : terms) { // for each term in query
             termLiterals.add(new TermLiteral(term));
             postings = termLiterals.get(counter).getPostings(index, kGramIndex);
-
+            System.out.println(index.getVocabulary().contains(term));
             if (!index.getVocabulary().contains(term)){
                 /** TODO: find alternatives for term using spelling correction
                  *
                  */
                 List<String> kgrams = kGramIndex.getGrams(K_GRAM_LIMIT, term);
-                List<String> relatedTerms = new ArrayList<>();
+                Set<String> relatedTerms = new HashSet<>();//hashset prevents duplicates
                 for (String kgram : kgrams) { // add all related terms that have common k-grams
                     Set<String> currRelatedTerms = kGramIndex.getTerms(kgram);
-                    for (String t : currRelatedTerms) {
-                        relatedTerms.add(t);
+                    if (currRelatedTerms != null) {//prevent non-existing grams null pointer exception
+                        relatedTerms.addAll(currRelatedTerms);
                     }
                 }
+
                 // jaccard coefficient
+                HashMap<String, Double> termsJaccardCoefficient = new HashMap<>();
+                double threshold = 0.35;//a match would be 1
+                for (String relatedTerm : relatedTerms) {
+                    double coefficient = getJaccardCoefficient(term, relatedTerm, kGramIndex);
+                    if (coefficient >= threshold) {//track terms that surpass the threshold
+                        termsJaccardCoefficient.put(relatedTerm, coefficient);
+                    }
+                }
 
                 // edit distance
 
