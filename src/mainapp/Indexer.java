@@ -290,9 +290,7 @@ public class Indexer {
             postings = termLiterals.get(counter).getPostings(index, kGramIndex);
             System.out.println(index.getVocabulary().contains(term));
             if (!index.getVocabulary().contains(term)){
-                /** TODO: find alternatives for term using spelling correction
-                 *
-                 */
+                // find alterative terms to use (spelling correction)
                 List<String> kgrams = kGramIndex.getGrams(K_GRAM_LIMIT, term);
                 Set<String> relatedTerms = new HashSet<>();//hashset prevents duplicates
                 for (String kgram : kgrams) { // add all related terms that have common k-grams
@@ -303,18 +301,44 @@ public class Indexer {
                 }
 
                 // jaccard coefficient
-                HashMap<String, Double> termsJaccardCoefficient = new HashMap<>();
+                //HashMap<String, Double> termsJaccardCoefficient = new HashMap<>();
+                HashMap<String, Double> termsEditDistance = new HashMap<>();
                 double threshold = 0.35;//a match would be 1
                 for (String relatedTerm : relatedTerms) {
                     double coefficient = getJaccardCoefficient(term, relatedTerm, kGramIndex);
                     if (coefficient >= threshold) {//track terms that surpass the threshold
-                        termsJaccardCoefficient.put(relatedTerm, coefficient);
+                        //termsJaccardCoefficient.put(relatedTerm, coefficient);
+                        // edit distance
+                        double editDistance = calculateEditDistance(term, relatedTerm);
+                        termsEditDistance.put(relatedTerm,editDistance);
                     }
                 }
+                String lowestEditDistanceTerm = "";
+                double lowestEditDistanceValue = Double.MAX_VALUE;
 
-                // edit distance
-
-
+                for (Map.Entry<String, Double> entry : termsEditDistance.entrySet()) {
+                    if (entry.getValue() < lowestEditDistanceValue){
+                        // iterate and find lowest edit distance term
+                        lowestEditDistanceTerm = entry.getKey();
+                        lowestEditDistanceValue = entry.getValue();
+                    } else if (entry.getValue() == lowestEditDistanceValue) { // if they are equal
+                        // check which has highest df_t (when stemmed)
+                        // stem current lowest ED term
+                        String stemmedLEDT = AdvancedTokenProcesser.stemToken(lowestEditDistanceTerm);
+                        TermLiteral lowestTerm = new TermLiteral(stemmedLEDT);
+                        // stem current entry key term
+                        String stemmedCT = AdvancedTokenProcesser.stemToken(entry.getKey());
+                        TermLiteral currTerm = new TermLiteral(stemmedCT);
+                        // get postings size (df_t) of each term
+                        List<Posting> lowestPostings = lowestTerm.getPostings(index, kGramIndex);
+                        List<Posting> currPostings = currTerm.getPostings(index, kGramIndex);
+                        // compare sizes (df_t)
+                        if (currPostings.size() > lowestPostings.size()){
+                            lowestEditDistanceTerm = entry.getKey();
+                            lowestEditDistanceValue = entry.getValue();
+                        }
+                    }
+                }
 
             }
             double w_qt = Math.log(n/postings.size());  // calculate wqt = ln(1 + N/dft)
@@ -327,6 +351,7 @@ public class Indexer {
                 double a_d = (w_dt * w_qt);
                 hm.put(p, a_d);
             }
+            counter++;
         }
 
         hm.forEach((key,value) -> accumulators.add(new Accumulator(key.getDocumentId(),value)));
