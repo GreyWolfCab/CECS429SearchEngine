@@ -1,5 +1,8 @@
 package cecs429.query;
 
+import cecs429.index.Index;
+import cecs429.index.KGramIndex;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,7 +40,7 @@ public class BooleanQueryParser {
 	/**
 	 * Given a boolean query, parses and returns a tree of Query objects representing the query.
 	 */
-	public Query parseQuery(String query) {
+	public Query parseQuery(String query, Index index, KGramIndex kGramIndex) {
 		int start = 0;
 
 		// General routine: scan the query to identify a literal, and put that literal into a list.
@@ -52,6 +55,11 @@ public class BooleanQueryParser {
 			StringBounds nextSubquery = findNextSubquery(query, start);
 			// Extract the identified subquery into its own string.
 			String subquery = query.substring(nextSubquery.start, nextSubquery.start + nextSubquery.length);
+
+//			if (!index.getVocabulary().contains(subquery) ||  ){
+//
+//			}
+
 			int subStart = 0;
 
 			// Store all the individual components of this subquery.

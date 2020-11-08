@@ -18,9 +18,12 @@ import java.io.Reader;
 
 public class Indexer {
 
+    private final static double TERM_DOC_FREQ_THRESHOLD = 5.00;
     public final static int K_GRAM_LIMIT = 3;
     public double timeToBuildIndex = 0.00;
     public Index index;
+
+
 
     public void main(String[] args) {
 
@@ -171,11 +174,21 @@ public class Indexer {
 
     public static List<Posting> userBooleanQueryInput(DocumentCorpus corpus, Index index, KGramIndex kGramIndex, String queryInput) {
         BooleanQueryParser query = new BooleanQueryParser();
-        List<Posting> postings = query.parseQuery(queryInput).getPostings(index, kGramIndex);
+        List<Posting> postings = query.parseQuery(queryInput, index, kGramIndex).getPostings(index, kGramIndex);
 
         corpus.getDocuments();//corpus doesn't exist if we don't include this line. (I have no idea)
         if (postings == null) {//term not found
             System.out.println("No such term found...");
+            /** TODO ::
+             *  select all vocab that have common k-grams
+             *  calculate jaccard coefficient for each type in selection
+             *  for each where > threshold, calculate the edit distance from that type to misspelled term
+             *  select the type with the lowest edit distance, if multiple tie then select highest df_t (when stemmed)
+             **/
+
+            kGramIndex.getGrams(K_GRAM_LIMIT, queryInput);
+
+
         } else {//the term is in the index
             //print each document associated with the query
             for (Posting posting : postings) {
@@ -189,6 +202,40 @@ public class Indexer {
         return postings;
     }
 
+    /**
+     * Calculate the Levenshtein Edit Distance of two strings
+    **/
+    public static int calculateEditDistance(String x, String y) {
+        int[][] dp = new int[x.length() + 1][y.length() + 1]; // create matrix of length x and y strings (mxn)
+
+        for (int n = 0; n <= x.length(); n++) {
+            for (int m = 0; m <= y.length(); m++) {
+                if (n == 0) {
+                    dp[n][m] = m;
+                }
+                else if (m == 0) {
+                    dp[n][m] = n;
+                }
+                else {
+                    dp[n][m] = min(dp[n - 1][m - 1]
+                                    + substitution(x.charAt(n - 1), y.charAt(m - 1)),
+                            dp[n - 1][m] + 1,
+                            dp[n][m - 1] + 1);
+                }
+            }
+        }
+
+        return dp[x.length()][y.length()];
+    }
+
+    public static int substitution(char a, char b) {
+        return a == b ? 0 : 1;
+    }
+
+    public static int min(int... numbers) {
+        return Arrays.stream(numbers)
+                .min().orElse(Integer.MAX_VALUE);
+    }
 
     public static Queue<Accumulator> userRankedQueryInput(DocumentCorpus corpus, DiskPositionalIndex index, KGramIndex kGramIndex, String queryInput){
         double n = corpus.getCorpusSize();
@@ -204,6 +251,26 @@ public class Indexer {
         for (String term : terms) { // for each term in query
             termLiterals.add(new TermLiteral(term));
             postings = termLiterals.get(counter).getPostings(index, kGramIndex);
+
+            if (!index.getVocabulary().contains(term)){
+                /** TODO: find alternatives for term using spelling correction
+                 *
+                 */
+                List<String> kgrams = kGramIndex.getGrams(K_GRAM_LIMIT, term);
+                List<String> relatedTerms = new ArrayList<>();
+                for (String kgram : kgrams) { // add all related terms that have common k-grams
+                    Set<String> currRelatedTerms = kGramIndex.getTerms(kgram);
+                    for (String t : currRelatedTerms) {
+                        relatedTerms.add(t);
+                    }
+                }
+                // jaccard coefficient
+
+                // edit distance
+
+
+
+            }
             double w_qt = Math.log(n/postings.size());  // calculate wqt = ln(1 + N/dft)
 
             for(Posting p : postings){ // for each document in postings list
@@ -280,7 +347,7 @@ public class Indexer {
                 } else {//handle typical term query
 
                     //collect postings of the query
-                    List<Posting> postings = query.parseQuery(input).getPostings(index, kGramIndex);
+                    List<Posting> postings = query.parseQuery(input, index, kGramIndex).getPostings(index, kGramIndex);
 
                     if (postings == null) {//term not found
                         System.out.println("No such term found...");
