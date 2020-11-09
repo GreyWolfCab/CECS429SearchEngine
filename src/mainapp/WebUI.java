@@ -18,7 +18,7 @@ import static java.util.stream.Collectors.joining;
 public class WebUI {
     public static Indexer indexer = new Indexer();
     public static Index index = null;
-    public static KGramIndex kGramIndex = new KGramIndex();
+    public static KGram kGramIndex = new KGramIndex();
     public static String dir = "";
     public static DocumentCorpus corpus = null;
     public static DiskIndexWriter diskIndexWriter = new DiskIndexWriter();
@@ -190,7 +190,7 @@ public class WebUI {
         //measure how long it takes to build the index
         long startTime = System.nanoTime();
         DiskPositionalIndex index = new DiskPositionalIndex(dir);
-        kGramIndex = index.loadDiskKGramIndex();
+        kGramIndex = new DiskKGramIndex(dir);
         long stopTime = System.nanoTime();
         buildIndexTime = (double)(stopTime - startTime) / 1_000_000_000.0;
         System.out.println("Done!\n");

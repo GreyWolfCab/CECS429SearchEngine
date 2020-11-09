@@ -2,7 +2,7 @@ package cecs429.index;
 
 import java.util.*;
 
-public class KGramIndex {
+public class KGramIndex implements KGram {
 
     private HashMap<String, Set<String>> mIndex;
 

@@ -1,7 +1,7 @@
 package cecs429.query;
 
 import cecs429.index.Index;
-import cecs429.index.KGramIndex;
+import cecs429.index.KGram;
 import cecs429.index.Posting;
 import mainapp.Indexer;
 
@@ -28,7 +28,7 @@ public class WildcardLiteral implements Query {
     }
 
     @Override
-    public List<Posting> getPostings(Index index, KGramIndex kGramIndex) {
+    public List<Posting> getPostings(Index index, KGram kGramIndex) {
         //generate the largest k-gram we can from each section of the term
         List<String> grams = kGramIndex.getGrams(Indexer.K_GRAM_LIMIT, mTerm);
         //retrieve the common terms among all grams
@@ -40,7 +40,7 @@ public class WildcardLiteral implements Query {
 
     }
 
-    private Set<String> intersectGramPostings(List<String> grams, KGramIndex kGramIndex) {
+    private Set<String> intersectGramPostings(List<String> grams, KGram kGramIndex) {
 
         Set<String> intersectingTerms = new HashSet<>(kGramIndex.getTerms(grams.get(0)));
 
@@ -68,7 +68,10 @@ public class WildcardLiteral implements Query {
                 //linear search the term with the gram, check within the size of the gram
                 for (int j = 0; j < (wildTerm.length()-grams.get(i).length()+1); j++) {
                     //check that the gram exists within the term
-                    if (wildTerm.substring(j, grams.get(i).length()+j).equals(grams.get(i))) {
+                    //TODO: this shit sucks
+                    int gramLen = grams.get(i).length()+j+1;
+                    String wildGram = wildTerm.substring(j, gramLen);
+                    if (wildGram.equals(grams.get(i))) {
                         gramExists = true;//no longer have to check the term
                         break;
                     }

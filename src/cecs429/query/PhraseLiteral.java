@@ -1,11 +1,10 @@
 package cecs429.query;
 
 import cecs429.index.Index;
-import cecs429.index.KGramIndex;
+import cecs429.index.KGram;
 import cecs429.index.Posting;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -26,7 +25,7 @@ public class PhraseLiteral implements Query {
 	}
 
 	@Override
-	public List<Posting> getPostings(Index index, KGramIndex kGramIndex) {
+	public List<Posting> getPostings(Index index, KGram kGramIndex) {
 		List<Posting> result = new ArrayList<>();
 		// Done: program this method. Retrieve the postings for the individual terms in the phrase,
 		// and positional merge them together.

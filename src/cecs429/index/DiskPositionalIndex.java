@@ -3,7 +3,6 @@ package cecs429.index;
 import java.io.*;
 import java.util.*;
 
-import cecs429.text.AdvancedTokenProcesser;
 import org.mapdb.*;
 
 public class DiskPositionalIndex implements Index {
@@ -15,7 +14,7 @@ public class DiskPositionalIndex implements Index {
     public DiskPositionalIndex(String dir) {
         indexLocation = dir + "\\index";
         try {
-            diskIndex = DBMaker.fileDB(indexLocation + "\\file.db").make();
+            diskIndex = DBMaker.fileDB(indexLocation + "\\index.db").make();
             map = diskIndex.treeMap("map")
                     .keySerializer(Serializer.STRING)
                     .valueSerializer(Serializer.LONG)
@@ -165,7 +164,11 @@ public class DiskPositionalIndex implements Index {
 
         try (RandomAccessFile raf = new RandomAccessFile(indexLocation + "\\postings.bin", "r")) {
 
-            raf.seek(getKeyTermAddress(term));
+            if (getKeyTermAddress(term) == -1) {
+                return t_fd;
+            } else {
+                raf.seek(getKeyTermAddress(term));
+            }
             int termFrequency = raf.readInt();//collect how many documents the term appears in
             int docId = 0;
             for (int i = 0; i < termFrequency; i++) {

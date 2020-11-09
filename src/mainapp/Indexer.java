@@ -72,7 +72,7 @@ public class Indexer {
 
     }
 
-    public static Index indexCorpus(DocumentCorpus corpus, KGramIndex kGramIndex, String indexLocation) {
+    public static Index indexCorpus(DocumentCorpus corpus, KGram kGramIndex, String indexLocation) {
 
         PositionalInvertedIndex index = new PositionalInvertedIndex();//create positional index
         AdvancedTokenProcesser processor = new AdvancedTokenProcesser();//create token processor
@@ -127,7 +127,6 @@ public class Indexer {
 
         //write document weights to disk
         diskIndexWriter.writeDocumentWeights(documentWeight, indexLocation);
-        diskIndexWriter.writeKGramIndex(kGramIndex, indexLocation);
 
         return index;
 
@@ -173,33 +172,19 @@ public class Indexer {
         return index.getVocabulary();
     }
 
-    public static List<Posting> userBooleanQueryInput(DocumentCorpus corpus, Index index, KGramIndex kGramIndex, String queryInput) {
+    public static List<Posting> userBooleanQueryInput(DocumentCorpus corpus, Index index, KGram kGramIndex, String queryInput) {
         BooleanQueryParser query = new BooleanQueryParser();
         List<Posting> postings = query.parseQuery(queryInput, index, kGramIndex).getPostings(index, kGramIndex);
 
         corpus.getDocuments();//corpus doesn't exist if we don't include this line. (I have no idea)
-        if (postings == null) {//term not found
-            System.out.println("No such term found...");
-            /** TODO ::
-             *  select all vocab that have common k-grams
-             *  calculate jaccard coefficient for each type in selection
-             *  for each where > threshold, calculate the edit distance from that type to misspelled term
-             *  select the type with the lowest edit distance, if multiple tie then select highest df_t (when stemmed)
-             **/
-
-            kGramIndex.getGrams(K_GRAM_LIMIT, queryInput);
-
-
-        } else {//the term is in the index
-            //print each document associated with the query
-            for (Posting posting : postings) {
-                System.out.printf("Document ID: %-9s Title: %s", posting.getDocumentId(),
-                        corpus.getDocument(posting.getDocumentId()).getTitle());
-                System.out.println();
-            }
-            System.out.println("\nTotal Documents: " + postings.size());//print total documents found
-
+        //print each document associated with the query
+        for (Posting posting : postings) {
+            System.out.printf("Document ID: %-9s Title: %s", posting.getDocumentId(),
+                    corpus.getDocument(posting.getDocumentId()).getTitle());
+            System.out.println();
         }
+        System.out.println("\nTotal Documents: " + postings.size());//print total documents found
+
         return postings;
     }
 
@@ -238,7 +223,7 @@ public class Indexer {
                 .min().orElse(Integer.MAX_VALUE);
     }
 
-    public static double getJaccardCoefficient(String firstTerm, String secondTerm, KGramIndex kGramIndex) {
+    public static double getJaccardCoefficient(String firstTerm, String secondTerm, KGram kGramIndex) {
 
         //build list of grams for both terms
         List<String> firstGrams = new ArrayList<>();
@@ -275,7 +260,7 @@ public class Indexer {
 
     }
 
-    public static PriorityQueue<Accumulator> userRankedQueryInput(DocumentCorpus corpus, DiskPositionalIndex index, KGramIndex kGramIndex, String queryInput){
+    public static PriorityQueue<Accumulator> userRankedQueryInput(DocumentCorpus corpus, DiskPositionalIndex index, KGram kGramIndex, String queryInput){
         double n = corpus.getCorpusSize();
         List<TermLiteral> termLiterals = new ArrayList<TermLiteral>();
         int counter = 0;
@@ -289,8 +274,8 @@ public class Indexer {
         for (String term : terms) { // for each term in query
             termLiterals.add(new TermLiteral(term));
             postings = termLiterals.get(counter).getPostings(index, kGramIndex);
-            System.out.println(index.getVocabulary().contains(term));
-            if (!index.getVocabulary().contains(term)){
+            String stemmedTerm = AdvancedTokenProcesser.stemToken(term);
+            if (!index.getVocabulary().contains(stemmedTerm)) {
                 // find alterative terms to use (spelling correction)
                 List<String> kgrams = kGramIndex.getGrams(K_GRAM_LIMIT, term);
                 Set<String> relatedTerms = new HashSet<>();//hashset prevents duplicates
@@ -300,7 +285,8 @@ public class Indexer {
                         relatedTerms.addAll(currRelatedTerms);
                     }
                 }
-
+                System.out.println("Here");
+                System.out.println(relatedTerms);
                 // jaccard coefficient
                 //HashMap<String, Double> termsJaccardCoefficient = new HashMap<>();
                 HashMap<String, Double> termsEditDistance = new HashMap<>();
@@ -342,17 +328,18 @@ public class Indexer {
                 }
 //                this.setSuggestedQuery(lowestEditDistanceTerm);
             }
+
             double w_qt = Math.log(n/postings.size());  // calculate wqt = ln(1 + N/dft)
 
             for(Posting p : postings){ // for each document in postings list
                 Document d = corpus.getDocument(p.getDocumentId());
 
-                double tf_td = index.getTermDocumentFrequency(term, d.getId());
+                double tf_td = index.getTermDocumentFrequency(stemmedTerm, d.getId());
                 double w_dt = 1 + Math.log(tf_td);
                 double a_d = (w_dt * w_qt);
                 hm.put(p, a_d);
             }
-            //counter++;
+
         }
 
         hm.forEach((key,value) -> accumulators.add(new Accumulator(key.getDocumentId(),value)));
@@ -386,7 +373,7 @@ public class Indexer {
      * @param index a collection of terms and documents
      * @param kGramIndex a collection of characters in sequence associated with complete terms
      */
-    private void userQuery(DocumentCorpus corpus, Index index, KGramIndex kGramIndex) {
+    private void userQuery(DocumentCorpus corpus, Index index, KGram kGramIndex) {
 
         //collect input from the user for a query
         try (Scanner in = new Scanner(System.in)) {
@@ -518,7 +505,7 @@ public class Indexer {
      * @param corpus the corpus to build an index from
      * @return the completed index
      */
-    public Index timeIndexBuild(DocumentCorpus corpus, KGramIndex kGramIndex, String indexLocation) {
+    public Index timeIndexBuild(DocumentCorpus corpus, KGram kGramIndex, String indexLocation) {
 
 
         System.out.println("Starting to build index...");

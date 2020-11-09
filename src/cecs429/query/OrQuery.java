@@ -1,7 +1,7 @@
 package cecs429.query;
 
 import cecs429.index.Index;
-import cecs429.index.KGramIndex;
+import cecs429.index.KGram;
 import cecs429.index.Posting;
 
 import java.util.ArrayList;
@@ -22,7 +22,7 @@ public class OrQuery implements Query {
 	}
 
 	@Override
-	public List<Posting> getPostings(Index index, KGramIndex kGramIndex) {
+	public List<Posting> getPostings(Index index, KGram kGramIndex) {
 		List<Posting> result = new ArrayList<>();
 
 		for (int i = 0; i < mChildren.size(); i++) {

@@ -1,7 +1,7 @@
 package cecs429.query;
 
 import cecs429.index.Index;
-import cecs429.index.KGramIndex;
+import cecs429.index.KGram;
 import cecs429.index.Posting;
 
 import java.util.ArrayList;
@@ -21,7 +21,7 @@ public class AndQuery implements Query {
 	}
 
 	@Override
-	public List<Posting> getPostings(Index index, KGramIndex kGramIndex) {
+	public List<Posting> getPostings(Index index, KGram kGramIndex) {
 		List<Posting> result = new ArrayList<Posting>();
 
 		// Done: program the merge for an AndQuery, by gathering the postings of the composed QueryComponents and

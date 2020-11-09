@@ -17,7 +17,8 @@ public class DiskIndexWriter {
         //create an index folder in the corpus
         createIndexFolder(indexLocation);
 
-        DB db = DBMaker.fileDB(indexLocation + "\\index\\file.db").make();
+        //create B+ tree for terms and addresses
+        DB db = DBMaker.fileDB(indexLocation + "\\index\\index.db").make();
         BTreeMap<String, Long> map = db.treeMap("map")
                 .keySerializer(Serializer.STRING)
                 .valueSerializer(Serializer.LONG)
@@ -42,7 +43,6 @@ public class DiskIndexWriter {
 
                 //store term and address in B+ tree
                 map.put(terms.get(i), (long)dout.size());
-                //db.commit();
                 //get current position stored as address for term
                 termAddresses.add((long)dout.size());
                 //make sure the term exists
@@ -83,6 +83,67 @@ public class DiskIndexWriter {
 
     }
 
+    public ArrayList<Long> writeKGramIndex(KGram kGramIndex, String indexLocation) {
+
+        ArrayList<Long> termAddresses = new ArrayList<>();
+
+        //create an index folder in the corpus
+        createIndexFolder(indexLocation);
+
+        //create B+ tree for grams and addresses
+        DB db = DBMaker.fileDB(indexLocation + "\\index\\kGramIndex.db").make();
+        BTreeMap<String, Long> map = db.treeMap("map")
+                .keySerializer(Serializer.STRING)
+                .valueSerializer(Serializer.LONG)
+                .counterEnable()
+                .createOrOpen();
+
+        List<String> grams = kGramIndex.getGrams();//get every gram from the kGramIndex
+        // all values in the file are 4-bytes
+        //format: # of terms : sizeTerm1 : char1 : char2 : char3: sizeTerm2: char 1 : char 2 :
+        // # of terms : sizeTerm1 : char1 : char2 : # of terms :
+        //     int    :    int    :  char :  char :     int    :
+
+        //create postings.bin file to act as index on disk
+        try (DataOutputStream dout = new DataOutputStream(
+                new BufferedOutputStream(
+                        new FileOutputStream(indexLocation + "\\index\\kGramIndex.bin")))) {
+
+            for (String gram : grams) {//iterate through every gram
+
+                //store gram and address in B+ tree
+                map.put(gram, (long)dout.size());
+                //get current position stored as address for term
+                termAddresses.add((long)dout.size());
+                //make sure the gram exists
+                if (kGramIndex.getTerms(gram) == null) {
+                    dout.writeInt(0);//term appears in 0 documents
+                } else {
+                    Set<String> terms = kGramIndex.getTerms(gram);
+                    int termFrequency = terms.size();//term frequency in the gram
+                    dout.writeInt(termFrequency);//store term frequency in the gram
+
+                    for (String term : terms) {//iterate through every term with the current gram
+                        int termSize = term.length();
+                        dout.writeInt(termSize);//store term length
+                        for (int j = 0; j < termSize; j++) {//iterate through each char in the term
+                            dout.writeChar(term.charAt(j));//store each term's char
+                        }
+                    }
+                }
+
+            }
+
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
+
+        db.close();
+
+        return termAddresses;
+
+    }
+
     public void writeDocumentWeights(ArrayList<Double> documentWeights, String indexLocation) {
 
         createIndexFolder(indexLocation);
@@ -104,40 +165,40 @@ public class DiskIndexWriter {
 
     }
 
-    public void writeKGramIndex(KGramIndex kGramIndex, String indexLocation) {
-
-        createIndexFolder(indexLocation);
-
-        try (BufferedWriter bw = new BufferedWriter(
-                new OutputStreamWriter(
-                        new FileOutputStream(indexLocation + "\\index\\kGramIndex.txt")))) {
-
-            List<String> grams = kGramIndex.getGrams();
-            StringBuilder text;
-
-            for (String gram : grams) {
-                text = new StringBuilder(gram + "-");
-
-                Set<String> terms = kGramIndex.getTerms(gram);
-                int i = 0;
-                for (String term : terms) {
-                    text.append(term);
-                    if (i < terms.size()-1) {
-                        text.append(",");
-                    }
-                    i++;
-                }
-
-                bw.write(text.toString());
-                bw.newLine();
-
-            }
-
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
-        }
-
-    }
+//    public void writeKGramIndex(KGramIndex kGramIndex, String indexLocation) {
+//
+//        createIndexFolder(indexLocation);
+//
+//        try (BufferedWriter bw = new BufferedWriter(
+//                new OutputStreamWriter(
+//                        new FileOutputStream(indexLocation + "\\index\\kGramIndex.txt")))) {
+//
+//            List<String> grams = kGramIndex.getGrams();
+//            StringBuilder text;
+//
+//            for (String gram : grams) {
+//                text = new StringBuilder(gram + "-");
+//
+//                Set<String> terms = kGramIndex.getTerms(gram);
+//                int i = 0;
+//                for (String term : terms) {
+//                    text.append(term);
+//                    if (i < terms.size()-1) {
+//                        text.append(",");
+//                    }
+//                    i++;
+//                }
+//
+//                bw.write(text.toString());
+//                bw.newLine();
+//
+//            }
+//
+//        } catch (IOException ioe) {
+//            ioe.printStackTrace();
+//        }
+//
+//    }
 
     private void createIndexFolder(String indexLocation) {
 

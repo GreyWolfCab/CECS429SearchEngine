@@ -1,7 +1,7 @@
 package cecs429.query;
 
 import cecs429.index.Index;
-import cecs429.index.KGramIndex;
+import cecs429.index.KGram;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,7 +40,7 @@ public class BooleanQueryParser {
 	/**
 	 * Given a boolean query, parses and returns a tree of Query objects representing the query.
 	 */
-	public Query parseQuery(String query, Index index, KGramIndex kGramIndex) {
+	public Query parseQuery(String query, Index index, KGram kGramIndex) {
 		int start = 0;
 
 		// General routine: scan the query to identify a literal, and put that literal into a list.
