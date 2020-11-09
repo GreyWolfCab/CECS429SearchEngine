@@ -127,6 +127,7 @@ public class Indexer {
 
         //write document weights to disk
         diskIndexWriter.writeDocumentWeights(documentWeight, indexLocation);
+        diskIndexWriter.writeKGramIndex(kGramIndex, indexLocation);
 
         return index;
 
