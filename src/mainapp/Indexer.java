@@ -128,7 +128,6 @@ public class Indexer {
         //write document weights to disk
         diskIndexWriter.writeDocumentWeights(documentWeight, indexLocation);
         diskIndexWriter.writeKGramIndex(kGramIndex, indexLocation);
-
         return index;
 
     }
@@ -281,9 +280,10 @@ public class Indexer {
                 List<String> kgrams = kGramIndex.getGrams(K_GRAM_LIMIT, term);
                 Set<String> relatedTerms = new HashSet<>();//hashset prevents duplicates
                 for (String kgram : kgrams) { // add all related terms that have common k-grams
+                    Set<String> currRelatedTerms = kGramIndex.getTerms(kgram);
+                    if (currRelatedTerms != null) {//prevent non-existing grams null pointer exception
 
-                    if (kGramIndex.getTerms(kgram) != null) {//prevent non-existing grams null pointer exception
-                        relatedTerms.addAll(kGramIndex.getTerms(kgram));
+                        relatedTerms.addAll(currRelatedTerms);
                     }
                 }
 

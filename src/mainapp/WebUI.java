@@ -117,7 +117,7 @@ public class WebUI {
             }
 
             return "<div><b>Top 10 Results for: </b>" + queryValue +
-                    "<div>Suggested Query: <button id=\"spelling-correction-btn\">" + suggestedQuery + "</button></div>" +
+                    "<div>Suggested Query: <button id=\"spelling-correction-btn\" onClick=\"suggestedQueryClicked(this.value)\">" + suggestedQuery + "</button></div>" +
                     "<div>Total Documents: " + pq.size() + "</div></div></br>" +
                     "<table style=\"width:100%\">\n" +
                     "    <tr>\n" +

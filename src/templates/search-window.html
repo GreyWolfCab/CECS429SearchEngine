@@ -62,6 +62,14 @@
         });
     };
 
+    function suggestedQueryClicked(value) {
+        let queryValue = document.getElementById("spelling-correction-btn").innerHTML;
+        console.log(queryValue);
+        $.post("/ranked-search", {queryValue: queryValue}, function(result){
+            $(result).prependTo($("#search-contents"));
+        });
+    }
+
 </script>
 
 </body>
