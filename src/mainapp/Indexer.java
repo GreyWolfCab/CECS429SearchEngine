@@ -22,6 +22,7 @@ public class Indexer {
     public final static int K_GRAM_LIMIT = 3;
     public double timeToBuildIndex = 0.00;
     public Index index;
+//    public String suggestedQuery = "";
 
 
 
@@ -274,14 +275,14 @@ public class Indexer {
 
     }
 
-    public static Queue<Accumulator> userRankedQueryInput(DocumentCorpus corpus, DiskPositionalIndex index, KGramIndex kGramIndex, String queryInput){
+    public static PriorityQueue<Accumulator> userRankedQueryInput(DocumentCorpus corpus, DiskPositionalIndex index, KGramIndex kGramIndex, String queryInput){
         double n = corpus.getCorpusSize();
         List<TermLiteral> termLiterals = new ArrayList<TermLiteral>();
         int counter = 0;
         List<Posting> postings = new ArrayList<Posting>();
         List<Accumulator> accumulators = new ArrayList<Accumulator>();
         HashMap<Posting, Double> hm = new HashMap<>();
-        Queue<Accumulator> pq = new PriorityQueue<>(10);
+        PriorityQueue<Accumulator> pq = new PriorityQueue<>(10);
 
         String[] terms = queryInput.split(" ");
 
@@ -339,7 +340,7 @@ public class Indexer {
                         }
                     }
                 }
-
+//                this.setSuggestedQuery(lowestEditDistanceTerm);
             }
             double w_qt = Math.log(n/postings.size());  // calculate wqt = ln(1 + N/dft)
 
@@ -351,7 +352,7 @@ public class Indexer {
                 double a_d = (w_dt * w_qt);
                 hm.put(p, a_d);
             }
-            counter++;
+            //counter++;
         }
 
         hm.forEach((key,value) -> accumulators.add(new Accumulator(key.getDocumentId(),value)));
@@ -371,6 +372,13 @@ public class Indexer {
         return pq;
     }
 
+//    public String getSuggestedQuery() {
+//        return suggestedQuery;
+//    }
+//
+//    public void setSuggestedQuery(String suggestedQuery) {
+//        this.suggestedQuery = suggestedQuery;
+//    }
 
     /**
      * method for collecting a users query via the console

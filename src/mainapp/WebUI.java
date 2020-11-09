@@ -100,7 +100,7 @@ public class WebUI {
 
         Spark.post("/ranked-search", (request, response) -> {
             String queryValue = request.queryParams("queryValue");
-            Queue<Accumulator> pq = indexer.userRankedQueryInput(corpus, (DiskPositionalIndex) index, kGramIndex, queryValue);
+            PriorityQueue<Accumulator> pq = Indexer.userRankedQueryInput(corpus, (DiskPositionalIndex) index, kGramIndex, queryValue);
             StringBuilder postingsRows = new StringBuilder();
 
             for (Accumulator acc : pq){
@@ -116,6 +116,7 @@ public class WebUI {
             }
 
             return "<div><b>Top 10 Results for: </b>" + queryValue +
+                    //"<div>Suggested Query: <button id=\"spelling-correction-btn\">" + indexer.getSuggestedQuery() + "</button></div>" +
                     "<div>Total Documents: " + pq.size() + "</div></div></br>" +
                     "<table style=\"width:100%\">\n" +
                     "    <tr>\n" +
