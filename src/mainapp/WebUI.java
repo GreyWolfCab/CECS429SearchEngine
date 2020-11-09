@@ -104,16 +104,17 @@ public class WebUI {
             StringBuilder postingsRows = new StringBuilder();
             String suggestedQuery = indexer.getSuggestedQuery();
 
-            for (Accumulator acc : pq){
-                String title = corpus.getDocument(acc.getDocId()).getTitle();
-                int docId = acc.getDocId();
-                double value = acc.getA_d();
+            while(!pq.isEmpty()){
+                Accumulator currAcc = pq.poll();
+                String title = corpus.getDocument(currAcc.getDocId()).getTitle();
+                int docId = currAcc.getDocId();
+                double value = currAcc.getA_d();
                 String row = "    <tr>\n" +
                         "        <td>"+docId+"</td>\n" +
                         "        <td><button id=\"" + docId + "\" onClick=\"docClicked(this.id)\" >"+title+"</button></td>\n" +
                         "        <td>"+value+"</td>\n" +
                         "    </tr>\n";
-                postingsRows.append(row);
+                postingsRows.insert(0,row);
             }
 
             return "<div><b>Top 10 Results for: </b>" + queryValue +
