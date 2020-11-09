@@ -22,7 +22,7 @@ public class Indexer {
     public final static int K_GRAM_LIMIT = 3;
     public double timeToBuildIndex = 0.00;
     public Index index;
-//    public String suggestedQuery = "";
+    public static String suggestedQuery = "";
 
 
 
@@ -285,12 +285,11 @@ public class Indexer {
                         relatedTerms.addAll(currRelatedTerms);
                     }
                 }
-                System.out.println("Here");
-                System.out.println(relatedTerms);
+
                 // jaccard coefficient
                 //HashMap<String, Double> termsJaccardCoefficient = new HashMap<>();
                 HashMap<String, Double> termsEditDistance = new HashMap<>();
-                double threshold = 0.35;//a match would be 1
+                double threshold = 0.1;//a match would be 1
                 for (String relatedTerm : relatedTerms) {
                     double coefficient = getJaccardCoefficient(term, relatedTerm, kGramIndex);
                     if (coefficient >= threshold) {//track terms that surpass the threshold
@@ -304,7 +303,7 @@ public class Indexer {
                 double lowestEditDistanceValue = Double.MAX_VALUE;
 
                 for (Map.Entry<String, Double> entry : termsEditDistance.entrySet()) {
-                    if (entry.getValue() < lowestEditDistanceValue){
+                    if (entry.getValue() < lowestEditDistanceValue) {
                         // iterate and find lowest edit distance term
                         lowestEditDistanceTerm = entry.getKey();
                         lowestEditDistanceValue = entry.getValue();
@@ -326,7 +325,7 @@ public class Indexer {
                         }
                     }
                 }
-//                this.setSuggestedQuery(lowestEditDistanceTerm);
+                setSuggestedQuery(lowestEditDistanceTerm);
             }
 
             double w_qt = Math.log(n/postings.size());  // calculate wqt = ln(1 + N/dft)
@@ -359,13 +358,13 @@ public class Indexer {
         return pq;
     }
 
-//    public String getSuggestedQuery() {
-//        return suggestedQuery;
-//    }
-//
-//    public void setSuggestedQuery(String suggestedQuery) {
-//        this.suggestedQuery = suggestedQuery;
-//    }
+    public static String getSuggestedQuery() {
+        return suggestedQuery;
+    }
+
+    public static void setSuggestedQuery(String query) {
+        suggestedQuery = query;
+    }
 
     /**
      * method for collecting a users query via the console

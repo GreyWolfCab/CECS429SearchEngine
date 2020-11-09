@@ -68,8 +68,7 @@ public class WildcardLiteral implements Query {
                 //linear search the term with the gram, check within the size of the gram
                 for (int j = 0; j < (wildTerm.length()-grams.get(i).length()+1); j++) {
                     //check that the gram exists within the term
-                    //TODO: this shit sucks
-                    int gramLen = grams.get(i).length()+j+1;
+                    int gramLen = grams.get(i).length()+j;
                     String wildGram = wildTerm.substring(j, gramLen);
                     if (wildGram.equals(grams.get(i))) {
                         gramExists = true;//no longer have to check the term
