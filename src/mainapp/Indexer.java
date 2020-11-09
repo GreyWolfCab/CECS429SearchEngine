@@ -280,16 +280,16 @@ public class Indexer {
                 List<String> kgrams = kGramIndex.getGrams(K_GRAM_LIMIT, term);
                 Set<String> relatedTerms = new HashSet<>();//hashset prevents duplicates
                 for (String kgram : kgrams) { // add all related terms that have common k-grams
-                    Set<String> currRelatedTerms = kGramIndex.getTerms(kgram);
-                    if (currRelatedTerms != null) {//prevent non-existing grams null pointer exception
-                        relatedTerms.addAll(currRelatedTerms);
+
+                    if (kGramIndex.getTerms(kgram) != null) {//prevent non-existing grams null pointer exception
+                        relatedTerms.addAll(kGramIndex.getTerms(kgram));
                     }
                 }
 
                 // jaccard coefficient
                 //HashMap<String, Double> termsJaccardCoefficient = new HashMap<>();
                 HashMap<String, Double> termsEditDistance = new HashMap<>();
-                double threshold = 0.1;//a match would be 1
+                double threshold = 0.2;//a match would be 1
                 for (String relatedTerm : relatedTerms) {
                     double coefficient = getJaccardCoefficient(term, relatedTerm, kGramIndex);
                     if (coefficient >= threshold) {//track terms that surpass the threshold
@@ -358,7 +358,7 @@ public class Indexer {
         return pq;
     }
 
-    public static String getSuggestedQuery() {
+    public String getSuggestedQuery() {
         return suggestedQuery;
     }
 

@@ -102,6 +102,7 @@ public class WebUI {
             String queryValue = request.queryParams("queryValue");
             PriorityQueue<Accumulator> pq = Indexer.userRankedQueryInput(corpus, (DiskPositionalIndex) index, kGramIndex, queryValue);
             StringBuilder postingsRows = new StringBuilder();
+            String suggestedQuery = indexer.getSuggestedQuery();
 
             for (Accumulator acc : pq){
                 String title = corpus.getDocument(acc.getDocId()).getTitle();
@@ -116,7 +117,7 @@ public class WebUI {
             }
 
             return "<div><b>Top 10 Results for: </b>" + queryValue +
-                    //"<div>Suggested Query: <button id=\"spelling-correction-btn\">" + indexer.getSuggestedQuery() + "</button></div>" +
+                    "<div>Suggested Query: <button id=\"spelling-correction-btn\">" + suggestedQuery + "</button></div>" +
                     "<div>Total Documents: " + pq.size() + "</div></div></br>" +
                     "<table style=\"width:100%\">\n" +
                     "    <tr>\n" +
