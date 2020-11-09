@@ -270,6 +270,7 @@ public class Indexer {
         PriorityQueue<Accumulator> pq = new PriorityQueue<>(10);
 
         String[] terms = queryInput.split(" ");
+        setSuggestedQuery("");
 
         for (String term : terms) { // for each term in query
             termLiterals.add(new TermLiteral(term));
