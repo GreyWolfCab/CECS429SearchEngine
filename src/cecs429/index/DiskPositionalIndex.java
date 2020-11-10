@@ -41,31 +41,6 @@ public class DiskPositionalIndex implements Index {
 
     }
 
-    public KGramIndex loadDiskKGramIndex() {
-
-        KGramIndex kGramIndex = new KGramIndex();
-
-        try (BufferedReader reader = new BufferedReader(
-                new FileReader (indexLocation + "\\kGramIndex.txt"))) {
-
-            String line = reader.readLine();
-            int i = 0;
-            while (line != null) {
-                String gram = line.substring(0, line.indexOf('-'));
-                String terms = line.substring(line.indexOf('-') + 1);
-                kGramIndex.addGramTerms(gram, terms.split(","));
-                line = reader.readLine();
-
-            }
-
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
-        }
-
-        return kGramIndex;
-
-    }
-
     public long getKeyTermAddress(String term) {
         if (map.get(term) == null) {
             return -1;

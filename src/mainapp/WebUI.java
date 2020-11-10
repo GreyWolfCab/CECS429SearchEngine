@@ -18,7 +18,7 @@ import static java.util.stream.Collectors.joining;
 public class WebUI {
     public static Indexer indexer = new Indexer();
     public static Index index = null;
-    public static KGram kGramIndex = new KGramIndex();
+    public static KGram kGramIndex = null;
     public static String dir = "";
     public static DocumentCorpus corpus = null;
     public static DiskIndexWriter diskIndexWriter = new DiskIndexWriter();
@@ -50,7 +50,7 @@ public class WebUI {
             dir = directoryValue;
             corpus = indexer.requestDirectory(dir);
             index = indexer.timeIndexBuild(corpus, kGramIndex, dir);
-            ArrayList<Long> addresses = diskIndexWriter.writeIndex(index, dir);//calls the writer of index to disk
+            diskIndexWriter.writeIndex(index, dir);//calls the writer of index to disk
             return "<div style=\"font-size: 12px; position:\">Files Indexed From: " + directoryValue + " </br>Time to Index: "+ indexer.getTimeToBuildIndex() +  " seconds</div></br>";
         });
 
@@ -167,19 +167,20 @@ public class WebUI {
                 return "</br><div style=\"font-size: 12px;\">"+ squeryValue + " stemmed to: " + stemmedTerm + "</div></br>";
                 //build a new index from the given directory
             } else if (squeryValue.length() >= 6 && squeryValue.substring(1, 6).equals("index")) {
-                System.out.println("Resetting the directory...");
+                System.out.println("Resetting the directory...");//re-build an in-memory index
                 dir = squeryValue.substring(7);
                 corpus = indexer.requestDirectory(dir);
                 index = indexer.timeIndexBuild(corpus, kGramIndex, dir);
+                diskIndexWriter.writeIndex(index, dir);//calls the writer of index to disk
                 return "<div style=\"font-size: 12px\">New Files Indexed From: " + dir + "</div> </br> <div style=\"font-size: 10px\">Time to Index:"+ indexer.getTimeToBuildIndex() +  " seconds</div>";
                 //print the first 1000 terms in the vocabulary
             } else if (squeryValue.length() == 6 && squeryValue.substring(1, 6).equals("vocab")) {
-                List<String> vocabList = indexer.userSQueryVocab();
+                List<String> vocabList = indexer.userSQueryVocab(index);//gather vocab list from any index
                 List<String> subVocab = null;
                 if (vocabList.size() >= 1000) { subVocab = vocabList.subList(0, 999); }
                 else { subVocab = vocabList.subList(0, vocabList.size() - 1); }
                 String formattedVocabList = subVocab.stream().map(item -> "" + item + "</br>").collect(joining(" "));
-                return "<div style=\"font-size: 12px;\">"+ formattedVocabList +" </br> <b style=\"font-size: 15px;\"># of vocab terms: " + vocabList.size() + "<b></div></br>";
+                return "<b style=\"font-size: 15px;\"># of vocab terms: " + vocabList.size() + "</b></div></br>" + " </br> <div style=\"font-size: 12px;\">"+ formattedVocabList + "</br>";
             } else {
                 return "<div style=\"font-size: 12px;\">Not Valid Special Query</div></br>";
             }

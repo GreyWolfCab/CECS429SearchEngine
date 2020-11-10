@@ -165,41 +165,6 @@ public class DiskIndexWriter {
 
     }
 
-//    public void writeKGramIndex(KGramIndex kGramIndex, String indexLocation) {
-//
-//        createIndexFolder(indexLocation);
-//
-//        try (BufferedWriter bw = new BufferedWriter(
-//                new OutputStreamWriter(
-//                        new FileOutputStream(indexLocation + "\\index\\kGramIndex.txt")))) {
-//
-//            List<String> grams = kGramIndex.getGrams();
-//            StringBuilder text;
-//
-//            for (String gram : grams) {
-//                text = new StringBuilder(gram + "-");
-//
-//                Set<String> terms = kGramIndex.getTerms(gram);
-//                int i = 0;
-//                for (String term : terms) {
-//                    text.append(term);
-//                    if (i < terms.size()-1) {
-//                        text.append(",");
-//                    }
-//                    i++;
-//                }
-//
-//                bw.write(text.toString());
-//                bw.newLine();
-//
-//            }
-//
-//        } catch (IOException ioe) {
-//            ioe.printStackTrace();
-//        }
-//
-//    }
-
     private void createIndexFolder(String indexLocation) {
 
         //create an index folder in the corpus

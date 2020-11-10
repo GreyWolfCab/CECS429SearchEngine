@@ -21,7 +21,6 @@ public class Indexer {
     private final static double TERM_DOC_FREQ_THRESHOLD = 5.00;
     public final static int K_GRAM_LIMIT = 3;
     public double timeToBuildIndex = 0.00;
-    public Index index;
     public static String suggestedQuery = "";
 
 
@@ -168,7 +167,7 @@ public class Indexer {
         return AdvancedTokenProcesser.stemToken(queryInput.substring(6));
     }
 
-    public List<String> userSQueryVocab () {
+    public List<String> userSQueryVocab (Index index) {
         return index.getVocabulary();
     }
 
@@ -513,7 +512,8 @@ public class Indexer {
 
         //measure how long it takes to build the index
         long startTime = System.nanoTime();
-        index = indexCorpus(corpus, kGramIndex, indexLocation);
+        kGramIndex = new KGramIndex();
+        Index index = indexCorpus(corpus, kGramIndex, indexLocation);
         long stopTime = System.nanoTime();
         double indexSeconds = (double)(stopTime - startTime) / 1_000_000_000.0;
         System.out.println("Done!\n");
