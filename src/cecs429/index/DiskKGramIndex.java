@@ -7,6 +7,7 @@ import org.mapdb.Serializer;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class DiskKGramIndex implements KGram {
@@ -19,7 +20,7 @@ public class DiskKGramIndex implements KGram {
         indexLocation = dir + "\\index";
         try {
             diskIndex = DBMaker.fileDB(indexLocation + "\\kGramIndex.db").make();
-            map = diskIndex.treeMap("map")
+            map = diskIndex.treeMap("kGram")
                     .keySerializer(Serializer.STRING)
                     .valueSerializer(Serializer.LONG)
                     .counterEnable()
@@ -55,7 +56,8 @@ public class DiskKGramIndex implements KGram {
                 int termSize = raf.readInt();//get the size of the current term
                 byte[] chars = new byte[termSize * 2];//(*2) since chars are 2 bytes
                 raf.readFully(chars);//read in all the bytes that make up the term
-                terms.add(new String(chars));//add the new string to the terms list
+                //read the string as UTF_16 so it can be compared to default java strings
+                terms.add(new String(chars, StandardCharsets.UTF_16));//add the new string to the terms list
             }
 
         } catch (IOException ioe) {

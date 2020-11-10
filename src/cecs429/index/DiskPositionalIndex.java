@@ -3,6 +3,7 @@ package cecs429.index;
 import java.io.*;
 import java.util.*;
 
+import cecs429.text.AdvancedTokenProcesser;
 import org.mapdb.*;
 
 public class DiskPositionalIndex implements Index {
@@ -95,10 +96,12 @@ public class DiskPositionalIndex implements Index {
 
     @Override
     public List<Posting> getPostings(String term) {
-        List<Posting> result = new ArrayList<>();
 
-        if (getKeyTermAddress(term) != -1) {//term doesn't exist
-            result.addAll(accessTermData(getKeyTermAddress(term), false));
+        List<Posting> result = new ArrayList<>();
+        String stemmedTerm = AdvancedTokenProcesser.stemToken(term);
+
+        if (getKeyTermAddress(stemmedTerm) != -1) {//term doesn't exist
+            result.addAll(accessTermData(getKeyTermAddress(stemmedTerm), false));
         }
 
         return result;
@@ -108,9 +111,12 @@ public class DiskPositionalIndex implements Index {
     public List<Posting> getPostingsPositions(String term) {
 
         List<Posting> result = new ArrayList<>();
+        String stemmedTerm = AdvancedTokenProcesser.stemToken(term);
 
-        if (getKeyTermAddress(term) != -1) {//term doesn't exist
-            result.addAll(accessTermData(getKeyTermAddress(term), true));
+        if (getKeyTermAddress(stemmedTerm) != -1) {//term doesn't exist
+            if (accessTermData(getKeyTermAddress(stemmedTerm), true) != null) {
+                result.addAll(accessTermData(getKeyTermAddress(stemmedTerm), true));
+            }
         }
 
         return result;

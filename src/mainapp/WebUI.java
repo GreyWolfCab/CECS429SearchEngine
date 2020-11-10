@@ -49,6 +49,7 @@ public class WebUI {
             String directoryValue = request.queryParams("directoryValue");
             dir = directoryValue;
             corpus = indexer.requestDirectory(dir);
+            kGramIndex = new KGramIndex();
             index = indexer.timeIndexBuild(corpus, kGramIndex, dir);
             diskIndexWriter.writeIndex(index, dir);//calls the writer of index to disk
             return "<div style=\"font-size: 12px; position:\">Files Indexed From: " + directoryValue + " </br>Time to Index: "+ indexer.getTimeToBuildIndex() +  " seconds</div></br>";
@@ -104,6 +105,7 @@ public class WebUI {
             StringBuilder postingsRows = new StringBuilder();
             String suggestedQuery = indexer.getSuggestedQuery();
 
+            int pqSize = pq.size();
             while(!pq.isEmpty()){
                 Accumulator currAcc = pq.poll();
                 String title = corpus.getDocument(currAcc.getDocId()).getTitle();
@@ -119,7 +121,7 @@ public class WebUI {
 
             return "<div><b>Top 10 Results for: </b>" + queryValue +
                     "<div>Suggested Query: <button id=\"spelling-correction-btn\" onClick=\"suggestedQueryClicked(this.value)\">" + suggestedQuery + "</button></div>" +
-                    "<div>Total Documents: " + pq.size() + "</div></div></br>" +
+                    "<div>Total Documents: " + pqSize + "</div></div></br>" +
                     "<table style=\"width:100%\">\n" +
                     "    <tr>\n" +
                     "        <th>Document Id</th>\n" +

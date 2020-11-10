@@ -92,7 +92,7 @@ public class DiskIndexWriter {
 
         //create B+ tree for grams and addresses
         DB db = DBMaker.fileDB(indexLocation + "\\index\\kGramIndex.db").make();
-        BTreeMap<String, Long> map = db.treeMap("map")
+        BTreeMap<String, Long> map = db.treeMap("kGram")
                 .keySerializer(Serializer.STRING)
                 .valueSerializer(Serializer.LONG)
                 .counterEnable()

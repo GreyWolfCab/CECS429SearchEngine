@@ -57,7 +57,6 @@ public class WildcardLiteral implements Query {
         List<Posting> mergedPostings = new ArrayList<>();
 
         for (String term : terms) {//go through every duplicate term
-
             String wildTerm = "$" + term + "$";//add begin/end markers
             boolean[] validTerm = new boolean[grams.size()];//keeps track of each gram that exists in the term
 
@@ -69,7 +68,10 @@ public class WildcardLiteral implements Query {
                 for (int j = 0; j < (wildTerm.length()-grams.get(i).length()+1); j++) {
                     //check that the gram exists within the term
                     int gramLen = grams.get(i).length()+j;
-                    String wildGram = wildTerm.substring(j, gramLen);
+                    String wildGram = "";
+                    for (int k = j; k < gramLen; k++) {
+                        wildGram += grams.get(i).charAt(k);
+                    }
                     if (wildGram.equals(grams.get(i))) {
                         gramExists = true;//no longer have to check the term
                         break;

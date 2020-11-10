@@ -40,7 +40,7 @@ public class BooleanQueryParser {
 	/**
 	 * Given a boolean query, parses and returns a tree of Query objects representing the query.
 	 */
-	public Query parseQuery(String query, Index index, KGram kGramIndex) {
+	public Query parseQuery(String query) {
 		int start = 0;
 
 		// General routine: scan the query to identify a literal, and put that literal into a list.
@@ -55,10 +55,6 @@ public class BooleanQueryParser {
 			StringBounds nextSubquery = findNextSubquery(query, start);
 			// Extract the identified subquery into its own string.
 			String subquery = query.substring(nextSubquery.start, nextSubquery.start + nextSubquery.length);
-
-//			if (!index.getVocabulary().contains(subquery) ||  ){
-//
-//			}
 
 			int subStart = 0;
 

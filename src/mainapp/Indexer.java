@@ -173,7 +173,7 @@ public class Indexer {
 
     public static List<Posting> userBooleanQueryInput(DocumentCorpus corpus, Index index, KGram kGramIndex, String queryInput) {
         BooleanQueryParser query = new BooleanQueryParser();
-        List<Posting> postings = query.parseQuery(queryInput, index, kGramIndex).getPostings(index, kGramIndex);
+        List<Posting> postings = query.parseQuery(queryInput).getPostings(index, kGramIndex);
 
         corpus.getDocuments();//corpus doesn't exist if we don't include this line. (I have no idea)
         //print each document associated with the query
@@ -413,7 +413,7 @@ public class Indexer {
                 } else {//handle typical term query
 
                     //collect postings of the query
-                    List<Posting> postings = query.parseQuery(input, index, kGramIndex).getPostings(index, kGramIndex);
+                    List<Posting> postings = query.parseQuery(input).getPostings(index, kGramIndex);
 
                     if (postings == null) {//term not found
                         System.out.println("No such term found...");
@@ -512,7 +512,6 @@ public class Indexer {
 
         //measure how long it takes to build the index
         long startTime = System.nanoTime();
-        kGramIndex = new KGramIndex();
         Index index = indexCorpus(corpus, kGramIndex, indexLocation);
         long stopTime = System.nanoTime();
         double indexSeconds = (double)(stopTime - startTime) / 1_000_000_000.0;
