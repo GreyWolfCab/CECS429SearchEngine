@@ -28,6 +28,11 @@ public class WildcardLiteral implements Query {
     }
 
     @Override
+    public List<Posting> getPostingsPositions(Index index, KGram kGramIndex) {
+        return getPostings(index, kGramIndex);
+    }
+
+    @Override
     public List<Posting> getPostings(Index index, KGram kGramIndex) {
         //generate the largest k-gram we can from each section of the term
         List<String> grams = kGramIndex.getGrams(Indexer.K_GRAM_LIMIT, mTerm);
@@ -92,8 +97,8 @@ public class WildcardLiteral implements Query {
                 if (!validTerm[q]) {//if a gram was not found
                     break;//this is not the correct term
                 } else if (validTerm[q] && q == validTerm.length-1) {//if every gram was found
-                    if (index.getPostingsPositions(term) != null) {
-                        mergedPostings = orMergePosting(mergedPostings, index.getPostingsPositions(term));
+                    if (index.getPostings(term) != null) {
+                        mergedPostings = orMergePosting(mergedPostings, index.getPostings(term));
                     }
                 }
             }

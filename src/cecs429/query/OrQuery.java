@@ -22,6 +22,11 @@ public class OrQuery implements Query {
 	}
 
 	@Override
+	public List<Posting> getPostingsPositions(Index index, KGram kGramIndex) {
+		return getPostings(index, kGramIndex);
+	}
+
+	@Override
 	public List<Posting> getPostings(Index index, KGram kGramIndex) {
 		List<Posting> result = new ArrayList<>();
 

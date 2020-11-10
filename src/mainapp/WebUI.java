@@ -67,6 +67,7 @@ public class WebUI {
 
         Spark.post("/search", (request, response) -> {
             String queryValue = request.queryParams("queryValue");
+            long startTime = System.nanoTime();
             List<Posting> postings;
             postings = indexer.userBooleanQueryInput(corpus, index, kGramIndex, queryValue);
 
@@ -83,6 +84,10 @@ public class WebUI {
                 postingsRows.append(row);
 
             }
+
+            long stopTime = System.nanoTime();
+            buildIndexTime = (double)(stopTime - startTime) / 1_000_000_000.0;
+            System.out.println("Query Time: " + buildIndexTime + " seconds");
 
             return "<div><b>Query: </b>" + queryValue +
                     "<div>Total Documents: " + postings.size() + "</div></div></br>" +

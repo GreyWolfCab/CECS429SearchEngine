@@ -101,7 +101,9 @@ public class DiskPositionalIndex implements Index {
         String stemmedTerm = AdvancedTokenProcesser.stemToken(term);
 
         if (getKeyTermAddress(stemmedTerm) != -1) {//term doesn't exist
-            result.addAll(accessTermData(getKeyTermAddress(stemmedTerm), false));
+            if (accessTermData(getKeyTermAddress(stemmedTerm), false) != null) {
+                result.addAll(accessTermData(getKeyTermAddress(stemmedTerm), false));
+            }
         }
 
         return result;

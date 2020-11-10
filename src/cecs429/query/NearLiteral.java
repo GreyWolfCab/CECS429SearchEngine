@@ -27,9 +27,14 @@ public class NearLiteral implements Query {
 
     @Override
     public List<Posting> getPostings(Index index, KGram kGramIndex) {
+        return getPostingsPositions(index, kGramIndex);
+    }
+
+    @Override
+    public List<Posting> getPostingsPositions(Index index, KGram kGramIndex) {
         List<Posting> result = new ArrayList<>();
-        List<Posting> firstPostings = mChildren.get(0).getPostings(index, kGramIndex);
-        List<Posting> secondPostings = mChildren.get(1).getPostings(index, kGramIndex);
+        List<Posting> firstPostings = mChildren.get(0).getPostingsPositions(index, kGramIndex);
+        List<Posting> secondPostings = mChildren.get(1).getPostingsPositions(index, kGramIndex);
 
         // verify each token appears in at least one document
         if (firstPostings != null && secondPostings != null) {
