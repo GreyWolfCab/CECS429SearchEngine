@@ -58,7 +58,7 @@ public class DiskPositionalIndex implements Index {
 
             raf.seek(address);//skip to the terms address
             int postingsSize = raf.readInt();//collect how many documents the term appears in
-            //int termFrequency = raf.readInt();
+            int termFrequency = raf.readInt();
             int docId = 0;
             for (int i = 0; i < postingsSize; i++) {//iterate through every document associated with the term
                 docId += raf.readInt();//collect next docId
@@ -148,6 +148,7 @@ public class DiskPositionalIndex implements Index {
                 raf.seek(getKeyTermAddress(term));
             }
 
+            raf.readInt();//consume postings size
             termFrequency = raf.readInt();//collect how many documents the term appears in
 
         }  catch (IOException ioe) {

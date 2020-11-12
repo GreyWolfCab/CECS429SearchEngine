@@ -200,6 +200,7 @@ public class WebUI {
         //measure how long it takes to build the index
         long startTime = System.nanoTime();
         DiskPositionalIndex index = new DiskPositionalIndex(dir);
+        System.out.println(index.getKeyTermAddress("fire"));
         kGramIndex = new DiskKGramIndex(dir);
         long stopTime = System.nanoTime();
         buildIndexTime = (double)(stopTime - startTime) / 1_000_000_000.0;

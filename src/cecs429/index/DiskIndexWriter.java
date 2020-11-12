@@ -48,18 +48,18 @@ public class DiskIndexWriter {
                 //make sure the term exists
                 if (index.getPostings(terms.get(i)) == null) {
                     dout.writeInt(0);//term appears in 0 documents
-                } else {
-//                    int postingsSize = index.getPostings(terms.get(i)).size();
-//                    dout.writeInt(postingsSize);
-//                    List<Posting> postings = index.getPostings(terms.get(i));
-//                    int termFrequency = 0;
-//                    for (int j = 0; j < postings.size(); j++) {
-//                        termFrequency += postings.get(j).getPositions().size();
-//                    }
-                    int termFrequency = index.getPostings(terms.get(i)).size();//term frequency among documents
+                } else {//psze = 15, tfreq = 231
+                    int postingsSize = index.getPostings(terms.get(i)).size();
+                    dout.writeInt(postingsSize);
+                    List<Posting> postings = index.getPostings(terms.get(i));
+                    int termFrequency = 0;
+                    for (int j = 0; j < postings.size(); j++) {
+                        termFrequency += postings.get(j).getPositions().size();
+                    }
+                    //int termFrequency = index.getPostings(terms.get(i)).size();//term frequency among documents
                     dout.writeInt(termFrequency);//store term frequency among documents
                     int prevDocumentId = 0;
-                    for (int j = 0; j < termFrequency; j++) {//iterate through every document with this term
+                    for (int j = 0; j < postingsSize; j++) {//iterate through every document with this term
 
                         int documentId = index.getPostings(terms.get(i)).get(j).getDocumentId();//gets document id
                         dout.writeInt(documentId - prevDocumentId);//store the gap between document id's

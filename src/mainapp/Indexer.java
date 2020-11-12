@@ -335,7 +335,6 @@ public class Indexer {
             }
             double w_qt = Math.log(1 + n/postings.size());  // calculate wqt = ln(1 + N/dft)
             //not as accurate, but saves us from thousands of disk reads
-            double temp = (double) index.getTermFrequency(stemmedTerm);
             double tf_td = (double) index.getTermFrequency(stemmedTerm) / (double) postings.size();
             for(Posting p : postings){ // for each document in postings list
                 //Document d = corpus.getDocument(p.getDocumentId());//very slow
