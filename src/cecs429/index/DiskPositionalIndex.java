@@ -57,9 +57,10 @@ public class DiskPositionalIndex implements Index {
         try (RandomAccessFile raf = new RandomAccessFile(indexLocation + "\\postings.bin", "r")) {
 
             raf.seek(address);//skip to the terms address
-            int termFrequency = raf.readInt();//collect how many documents the term appears in
+            int postingsSize = raf.readInt();//collect how many documents the term appears in
+            //int termFrequency = raf.readInt();
             int docId = 0;
-            for (int i = 0; i < termFrequency; i++) {//iterate through every document associated with the term
+            for (int i = 0; i < postingsSize; i++) {//iterate through every document associated with the term
                 docId += raf.readInt();//collect next docId
                 int totalPositions = raf.readInt();//collect term frequency in the document
                 Posting post = null;//store a posting

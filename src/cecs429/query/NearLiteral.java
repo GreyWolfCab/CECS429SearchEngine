@@ -70,12 +70,10 @@ public class NearLiteral implements Query {
             // both lists have this document
             if (firstPostings.get(i).getDocumentId() == secondPostings.get(j).getDocumentId()) {
                 // gather the positions of the terms that are up to k positions apart
-                for (int d = 1; d < k; d++) {
-                    Posting newPosting = positionalMergePosting(firstPostings.get(i), secondPostings.get(j), k);
-                    if (newPosting != null) {
-                        // posting contains the terms, add to result
-                        result.add(newPosting);
-                    }
+                Posting newPosting = positionalMergePosting(firstPostings.get(i), secondPostings.get(j), k);
+                if (newPosting != null) {
+                    // posting contains the terms, add to result
+                    result.add(newPosting);
                 }
                 i++;
                 j++;

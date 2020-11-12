@@ -29,7 +29,7 @@ public class DiskIndexWriter {
 
         List<String> terms = index.getVocabulary();
         // all values in the file are 4-bytes
-        //format: term 1 frequency : firstDocumentId : total positions : firstPosition :
+        //format: postings size : term 1 frequency : firstDocumentId : total positions : firstPosition :
         // term 2 frequency : firstDocument : total positions : firstPosition : secondPosition :
 
         // maximum address is 8-bytes = 64-bits = 9,223,372,036,854,775,807 in decimal
@@ -49,6 +49,13 @@ public class DiskIndexWriter {
                 if (index.getPostings(terms.get(i)) == null) {
                     dout.writeInt(0);//term appears in 0 documents
                 } else {
+//                    int postingsSize = index.getPostings(terms.get(i)).size();
+//                    dout.writeInt(postingsSize);
+//                    List<Posting> postings = index.getPostings(terms.get(i));
+//                    int termFrequency = 0;
+//                    for (int j = 0; j < postings.size(); j++) {
+//                        termFrequency += postings.get(j).getPositions().size();
+//                    }
                     int termFrequency = index.getPostings(terms.get(i)).size();//term frequency among documents
                     dout.writeInt(termFrequency);//store term frequency among documents
                     int prevDocumentId = 0;

@@ -269,12 +269,16 @@ public class Indexer {
 
         String[] terms = queryInput.split(" ");
         setSuggestedQuery("");
+        boolean discardSuggested = false;
 
         for (String term : terms) { // for each term in query
-            termLiterals.add(new TermLiteral(term));
-            postings = termLiterals.get(counter).getPostings(index, kGramIndex);
+            term = term.toLowerCase();
             String stemmedTerm = AdvancedTokenProcesser.stemToken(term);
+            termLiterals.add(new TermLiteral(stemmedTerm));
+            postings = termLiterals.get(counter).getPostings(index, kGramIndex);
+            counter++;
             if (!index.getVocabulary().contains(stemmedTerm)) {
+                discardSuggested = true;
                 // find alterative terms to use (spelling correction)
                 List<String> kgrams = kGramIndex.getGrams(K_GRAM_LIMIT, term);
                 Set<String> relatedTerms = new HashSet<>();//hashset prevents duplicates
@@ -325,25 +329,35 @@ public class Indexer {
                         }
                     }
                 }
-                setSuggestedQuery(lowestEditDistanceTerm);
+                setSuggestedQuery(getSuggestedQuery() + " " + lowestEditDistanceTerm);
+            } else {
+                setSuggestedQuery(getSuggestedQuery() + stemmedTerm);
             }
-
-            double w_qt = Math.log(n/postings.size());  // calculate wqt = ln(1 + N/dft)
+            double w_qt = Math.log(1 + n/postings.size());  // calculate wqt = ln(1 + N/dft)
             //not as accurate, but saves us from thousands of disk reads
-            double tf_td = (double) index.getTermFrequency(stemmedTerm) / postings.size();
+            double temp = (double) index.getTermFrequency(stemmedTerm);
+            double tf_td = (double) index.getTermFrequency(stemmedTerm) / (double) postings.size();
             for(Posting p : postings){ // for each document in postings list
                 //Document d = corpus.getDocument(p.getDocumentId());//very slow
                 //double tf_td = index.getTermDocumentFrequency(stemmedTerm, d.getId());//Horribly slow
                 double w_dt = 1 + Math.log(tf_td);
                 double a_d = (w_dt * w_qt);
-                hm.put(p, a_d);
+                if (hm.get(p) != null) {
+                    hm.put(p, hm.get(p) + a_d);
+                } else {
+                    hm.put(p, a_d);
+                }
             }
 
         }
 
+        if (!discardSuggested) {
+            setSuggestedQuery("");
+        }
+
         List<Accumulator> accumulators = new ArrayList<Accumulator>();
         hm.forEach((key,value) -> accumulators.add(new Accumulator(key.getDocumentId(),value)));
-
+        //2711 fires: wqt = 2.368 in: wqt = 2.368  yosemite: wqt = 2.368
         for (Accumulator acc : accumulators){
             // only retain the top 10
             double value = acc.getA_d() / index.getDocumentWeight(acc.getDocId());
@@ -359,7 +373,7 @@ public class Indexer {
         return pq;
     }
 
-    public String getSuggestedQuery() {
+    public static String getSuggestedQuery() {
         return suggestedQuery;
     }
 
