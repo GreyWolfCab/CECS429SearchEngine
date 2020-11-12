@@ -264,7 +264,6 @@ public class Indexer {
         List<TermLiteral> termLiterals = new ArrayList<TermLiteral>();
         int counter = 0;
         List<Posting> postings = new ArrayList<Posting>();
-        List<Accumulator> accumulators = new ArrayList<Accumulator>();
         HashMap<Posting, Double> hm = new HashMap<>();
         PriorityQueue<Accumulator> pq = new PriorityQueue<>(10);
 
@@ -330,11 +329,11 @@ public class Indexer {
             }
 
             double w_qt = Math.log(n/postings.size());  // calculate wqt = ln(1 + N/dft)
-
+            //not as accurate, but saves us from thousands of disk reads
+            double tf_td = (double) index.getTermFrequency(stemmedTerm) / postings.size();
             for(Posting p : postings){ // for each document in postings list
-                Document d = corpus.getDocument(p.getDocumentId());
-
-                double tf_td = index.getTermDocumentFrequency(stemmedTerm, d.getId());
+                //Document d = corpus.getDocument(p.getDocumentId());//very slow
+                //double tf_td = index.getTermDocumentFrequency(stemmedTerm, d.getId());//Horribly slow
                 double w_dt = 1 + Math.log(tf_td);
                 double a_d = (w_dt * w_qt);
                 hm.put(p, a_d);
@@ -342,6 +341,7 @@ public class Indexer {
 
         }
 
+        List<Accumulator> accumulators = new ArrayList<Accumulator>();
         hm.forEach((key,value) -> accumulators.add(new Accumulator(key.getDocumentId(),value)));
 
         for (Accumulator acc : accumulators){
