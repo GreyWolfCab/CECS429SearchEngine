@@ -16,14 +16,12 @@ import java.util.*;
 import static java.util.stream.Collectors.joining;
 
 public class WebUI {
-    public static Indexer indexer = new Indexer();
-    public static Index index = null;
-    public static KGram kGramIndex = null;
-    public static String dir = "";
-    public static DocumentCorpus corpus = null;
-    public static DiskIndexWriter diskIndexWriter = new DiskIndexWriter();
-
-    public static boolean isDiskIndex = false;
+    private static Indexer indexer = new Indexer();
+    private static Index index = null;
+    private static KGram kGramIndex = null;
+    private static String dir = "";
+    private static DocumentCorpus corpus = null;
+    private static DiskIndexWriter diskIndexWriter = new DiskIndexWriter();
     private static double buildIndexTime = 0;
 
     public static void main(String args[]) {
@@ -45,26 +43,18 @@ public class WebUI {
 
         // posts directory, builds index
         Spark.post("/", (request, response) -> {
-            isDiskIndex = false;
-            String directoryValue = request.queryParams("directoryValue");
-            dir = directoryValue;
-            corpus = indexer.requestDirectory(dir);
-            kGramIndex = new KGramIndex();
-            index = indexer.timeIndexBuild(corpus, kGramIndex, dir);
-            diskIndexWriter.writeIndex(index, dir);//calls the writer of index to disk
-            return "<div style=\"font-size: 12px; position:\">Files Indexed From: " + directoryValue + " </br>Time to Index: "+ indexer.getTimeToBuildIndex() +  " seconds</div></br>";
+            dir = request.queryParams("directoryValue");
+            double buildTime = timeToBuildIndex(dir, false);
+            return "<div style=\"font-size: 12px; position:\">Files Indexed From: " + dir + " </br>Time to Index: " + buildTime +  " seconds</div></br>";
         });
 
         Spark.post("/buildindex", (request, response) -> {
-            isDiskIndex = true;
             dir = request.queryParams("directoryValue");
-            corpus = indexer.requestDirectory(dir);
-            index = buildDiskPositionalIndex(dir);//builds positional index and k-gram index
-            return "<div style=\"font-size: 12px; position:\">Built Disk Index From: " + dir + " </br>Time to Index: " + buildIndexTime + " seconds</div>";
+            double buildTime = timeToBuildIndex(dir, true);
+            return "<div style=\"font-size: 12px; position:\">Built Disk Index From: " + dir + " </br>Time to Index: " + buildTime + " seconds</div>";
         });
 
         // posts query values based on query inputs from client (outputs as html table)
-
         Spark.post("/search", (request, response) -> {
             String queryValue = request.queryParams("queryValue");
             long startTime = System.nanoTime();
@@ -176,10 +166,8 @@ public class WebUI {
             } else if (squeryValue.length() >= 6 && squeryValue.substring(1, 6).equals("index")) {
                 System.out.println("Resetting the directory...");//re-build an in-memory index
                 dir = squeryValue.substring(7);
-                corpus = indexer.requestDirectory(dir);
-                index = indexer.timeIndexBuild(corpus, kGramIndex, dir);
-                diskIndexWriter.writeIndex(index, dir);//calls the writer of index to disk
-                return "<div style=\"font-size: 12px\">New Files Indexed From: " + dir + "</div> </br> <div style=\"font-size: 10px\">Time to Index:"+ indexer.getTimeToBuildIndex() +  " seconds</div>";
+                double buildTime = timeToBuildIndex(dir, false);
+                return "<div style=\"font-size: 12px\">New Files Indexed From: " + dir + "</div> </br> <div style=\"font-size: 10px\">Time to Index:"+ buildTime +  " seconds</div>";
                 //print the first 1000 terms in the vocabulary
             } else if (squeryValue.length() == 6 && squeryValue.substring(1, 6).equals("vocab")) {
                 List<String> vocabList = indexer.userSQueryVocab(index);//gather vocab list from any index
@@ -195,19 +183,30 @@ public class WebUI {
 
     }
 
-    public static DiskPositionalIndex buildDiskPositionalIndex(String dir) {
+    private static double timeToBuildIndex(String dir, boolean isDiskIndex) throws IOException {
 
+        System.out.println("Starting to build index...");
         //measure how long it takes to build the index
         long startTime = System.nanoTime();
-        DiskPositionalIndex index = new DiskPositionalIndex(dir);
-        System.out.println(index.getKeyTermAddress("fire"));
-        kGramIndex = new DiskKGramIndex(dir);
-        long stopTime = System.nanoTime();
-        buildIndexTime = (double)(stopTime - startTime) / 1_000_000_000.0;
-        System.out.println("Done!\n");
-        System.out.println("Time to build index: " + buildIndexTime + " seconds");
 
-        return index;
+        if (isDiskIndex) {//create index from disk
+            corpus = indexer.requestDirectory(dir);
+            kGramIndex = indexer.buildDiskKGramIndex(dir);
+            index = indexer.buildDiskPositionalIndex(dir);//builds positional index and k-gram index
+        } else {//create in memory index
+            corpus = indexer.requestDirectory(dir);
+            kGramIndex = new KGramIndex();
+            index = indexer.timeIndexBuild(corpus, kGramIndex, dir);
+            diskIndexWriter.writeIndex(index, dir);//calls the writer of index to disk
+        }
+
+        long stopTime = System.nanoTime();
+        double indexSeconds = (double)(stopTime - startTime) / 1_000_000_000.0;
+        System.out.println("Done!\n");
+        System.out.println("Time to build index: " + indexSeconds + " seconds");
+
+        return indexSeconds;
+
     }
 
 }
