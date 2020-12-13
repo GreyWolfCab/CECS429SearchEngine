@@ -2,6 +2,8 @@ package cecs429.index;
 
 import cecs429.text.AdvancedTokenProcesser;
 
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -97,6 +99,20 @@ public class PositionalInvertedIndex implements Index {
 		posting.addPosition(position);
 		postings.add(posting);
 		return postings;
+	}
+
+	public int getTermFrequency(String term) {
+
+		//only needed for ranked queries
+		return -1;
+
+	}
+
+	public double getDocumentWeight(int docId) {
+
+		//only needed for ranked queries
+		return -1;
+
 	}
 
 }

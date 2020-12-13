@@ -16,4 +16,8 @@ public interface Index  {
 	 */
 	List<String> getVocabulary();
 
+	int getTermFrequency(String term);
+
+	double getDocumentWeight(int docId);
+
 }

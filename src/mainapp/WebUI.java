@@ -4,6 +4,7 @@ import cecs429.documents.Document;
 import cecs429.documents.DocumentCorpus;
 import cecs429.index.*;
 
+import cecs429.query.Search;
 import spark.ModelAndView;
 import spark.Spark;
 import spark.template.thymeleaf.ThymeleafTemplateEngine;
@@ -17,12 +18,12 @@ import static java.util.stream.Collectors.joining;
 
 public class WebUI {
     private static Indexer indexer = new Indexer();
+    private static Search search = new Search();
     private static Index index = null;
     private static KGram kGramIndex = null;
     private static String dir = "";
     private static DocumentCorpus corpus = null;
     private static DiskIndexWriter diskIndexWriter = new DiskIndexWriter();
-    private static double buildIndexTime = 0;
 
     public static void main(String args[]) {
 
@@ -56,76 +57,18 @@ public class WebUI {
 
         // posts query values based on query inputs from client (outputs as html table)
         Spark.post("/search", (request, response) -> {
+
             String queryValue = request.queryParams("queryValue");
-            long startTime = System.nanoTime();
-            List<Posting> postings;
-            postings = indexer.userBooleanQueryInput(corpus, index, kGramIndex, queryValue);
-
-            StringBuilder postingsRows = new StringBuilder();
-
-            for (Posting post : postings) {//include document titles for each returned posting
-
-                String title = corpus.getDocument(post.getDocumentId()).getTitle();
-                String row = "    <tr>\n" +
-                        "        <td>"+post.getDocumentId()+"</td>\n" +
-                        "        <td><button id=\"" + post.getDocumentId() + "\" onClick=\"docClicked(this.id)\" >"+title+"</button></td>\n" +
-                        "        <td>"+post.getPositions()+"</td>\n" +
-                        "    </tr>\n";
-                postingsRows.append(row);
-
-            }
-
-            long stopTime = System.nanoTime();
-            buildIndexTime = (double)(stopTime - startTime) / 1_000_000_000.0;
-            System.out.println("Query Time: " + buildIndexTime + " seconds");
-
-            return "<div><b>Query: </b>" + queryValue +
-                    "<div>Total Documents: " + postings.size() + "</div></div></br>" +
-                    "<table style=\"width:100%\">\n" +
-                    "    <tr>\n" +
-                    "        <th>Document ID</th>\n" +
-                    "        <th>Document Title</th>\n" +
-                    "        <th>Positions</th>\n" +
-                    "    </tr>\n" +
-                         postingsRows.toString() +
-                    "</table>"
-                     ;
+            return search.performSearch(corpus, index, kGramIndex, queryValue, true);
         });
 
         // post ranked query values based on query inputs from client (outputs as html table)
 
         Spark.post("/ranked-search", (request, response) -> {
+
             String queryValue = request.queryParams("queryValue");
-            PriorityQueue<Accumulator> pq = Indexer.userRankedQueryInput(corpus, (DiskPositionalIndex) index, kGramIndex, queryValue);
-            StringBuilder postingsRows = new StringBuilder();
-            String suggestedQuery = indexer.getSuggestedQuery();
+            return search.performSearch(corpus, index, kGramIndex, queryValue, false);
 
-            int pqSize = pq.size();
-            while(!pq.isEmpty()){
-                Accumulator currAcc = pq.poll();
-                String title = corpus.getDocument(currAcc.getDocId()).getTitle();
-                int docId = currAcc.getDocId();
-                double value = currAcc.getA_d();
-                String row = "    <tr>\n" +
-                        "        <td>"+docId+"</td>\n" +
-                        "        <td><button id=\"" + docId + "\" onClick=\"docClicked(this.id)\" >"+title+"</button></td>\n" +
-                        "        <td>"+value+"</td>\n" +
-                        "    </tr>\n";
-                postingsRows.insert(0,row);
-            }
-
-            return "<div><b>Top 10 Results for: </b>" + queryValue +
-                    "<div>Suggested Query: <button id=\"spelling-correction-btn\" onClick=\"suggestedQueryClicked(this.value)\">" + suggestedQuery + "</button></div>" +
-                    "<div>Total Documents: " + pqSize + "</div></div></br>" +
-                    "<table style=\"width:100%\">\n" +
-                    "    <tr>\n" +
-                    "        <th>Document Id</th>\n" +
-                    "        <th>Document Title</th>\n" +
-                    "        <th>Score</th>\n" +
-                    "    </tr>\n" +
-                    postingsRows.toString() +
-                    "</table>"
-                    ;
         });
 
         // posts document contents as a div
