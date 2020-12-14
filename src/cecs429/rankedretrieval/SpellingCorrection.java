@@ -1,8 +1,9 @@
-package cecs429.query;
+package cecs429.rankedretrieval;
 
 import cecs429.index.Index;
 import cecs429.index.KGram;
 import cecs429.index.Posting;
+import cecs429.query.TermLiteral;
 import cecs429.text.AdvancedTokenProcesser;
 import mainapp.Indexer;
 

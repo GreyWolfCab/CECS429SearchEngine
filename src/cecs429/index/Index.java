@@ -20,4 +20,6 @@ public interface Index  {
 
 	double getDocumentWeight(int docId);
 
+	int getDocumentFrequencyOfTerm(String term);
+
 }

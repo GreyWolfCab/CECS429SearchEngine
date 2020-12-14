@@ -16,6 +16,8 @@ public class Indexer {
     private final static double TERM_DOC_FREQ_THRESHOLD = 5.00;
     public final static int K_GRAM_LIMIT = 3;
 
+    //cranfield id's will be 1 over (i.e. in our results it will display id: 12, but it is actually id: 0013.json)
+
     public static Index indexCorpus(DocumentCorpus corpus, KGram kGramIndex, String indexLocation) {
 
         PositionalInvertedIndex index = new PositionalInvertedIndex();//create positional index

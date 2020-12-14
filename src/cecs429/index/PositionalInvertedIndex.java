@@ -115,4 +115,11 @@ public class PositionalInvertedIndex implements Index {
 
 	}
 
+	public int getDocumentFrequencyOfTerm(String term) {
+
+		//only needed for ranked queries
+		return -1;
+
+	}
+
 }
