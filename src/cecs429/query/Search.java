@@ -4,7 +4,6 @@ import cecs429.documents.DocumentCorpus;
 import cecs429.index.Index;
 import cecs429.index.KGram;
 import cecs429.index.Posting;
-import cecs429.rankedretrieval.SpellingCorrection;
 import cecs429.text.AdvancedTokenProcesser;
 import testing.Accumulator;
 
@@ -14,87 +13,95 @@ public class Search {
 
     private static final int RANKED_RETURN = 50;
     private static final double VOCAB_ELIMINATION_THRESHOLD = 0;// 3 because it is the best
+    private final int TEST_ITERATIONS = 30;
+    private double queryTime = 0.0;
 
-    public String performSearch(DocumentCorpus corpus, Index index, KGram kGramIndex, String queryValue, Boolean isBooleanQuery) {
+    public String performSearch(DocumentCorpus corpus, Index index, KGram kGramIndex, String queryValue, Boolean isBooleanQuery, Boolean testThroughput) {
 
         StringBuilder postingsRows = new StringBuilder();
         String result = "";
+        int testIterations = 1;
 
-        int[] relevantDocsCran = {52, 185, 487, 13, 880, 14, 877, 103, 57, 876, 379};
+        int[] relevantDocsCran = {51, 184, 486, 12, 879, 13, 14, 876, 102, 56, 875, 378};
 
         System.out.println("Starting Query...");//calculate how long it takes to execute
         double queryRuntime;
         long startTime = System.nanoTime();
 
-        if (isBooleanQuery) {//process a boolean query
-            List<Posting> postings = userBooleanQueryInput(corpus, index, kGramIndex, queryValue);
-
-
-            for (Posting post : postings) {//include document titles for each returned posting
-
-                String title = corpus.getDocument(post.getDocumentId()).getTitle();
-                String row = "    <tr>\n" +
-                        "        <td>"+post.getDocumentId()+"</td>\n" +
-                        "        <td><button id=\"" + post.getDocumentId() + "\" onClick=\"docClicked(this.id)\" >"+title+"</button></td>\n" +
-                        "        <td>"+post.getPositions()+"</td>\n" +
-                        "    </tr>\n";
-                postingsRows.append(row);
-
-            }
-
-            result = "<div><b>Query: </b>" + queryValue +
-                    "<div>Total Documents: " + postings.size() + "</div></div></br>" +
-                    "<table style=\"width:100%\">\n" +
-                    "    <tr>\n" +
-                    "        <th>Document ID</th>\n" +
-                    "        <th>Document Title</th>\n" +
-                    "        <th>Positions</th>\n" +
-                    "    </tr>\n" +
-                    postingsRows.toString() +
-                    "</table>";
-
-        } else {
-
-            PriorityQueue<Accumulator> pq = userRankedQueryInput(corpus, index, kGramIndex, queryValue);
-            String suggestedQuery = SpellingCorrection.getSuggestedQuery();
-
-            int pqSize = pq.size();
-            while(!pq.isEmpty()){
-                Accumulator currAcc = pq.poll();
-                String title = corpus.getDocument(currAcc.getDocId()).getTitle();
-                int docId = currAcc.getDocId();
-                for (int i = 0; i < relevantDocsCran.length; i++) {
-                    if (docId == relevantDocsCran[i]-1) {
-                        System.out.println(relevantDocsCran[i] + " was included.");
-                    }
-                }
-                double value = currAcc.getA_d();
-                String row = "    <tr>\n" +
-                        "        <td>"+docId+"</td>\n" +
-                        "        <td><button id=\"" + docId + "\" onClick=\"docClicked(this.id)\" >"+title+"</button></td>\n" +
-                        "        <td>"+value+"</td>\n" +
-                        "    </tr>\n";
-                postingsRows.insert(0,row);
-            }
-
-            result = "<div><b>Top " + RANKED_RETURN + " Results for: </b>" + queryValue +
-                    "<div>Suggested Query: <button id=\"spelling-correction-btn\" onClick=\"suggestedQueryClicked(this.value)\">" + suggestedQuery + "</button></div>" +
-                    "<div>Total Documents: " + pqSize + "</div></div></br>" +
-                    "<table style=\"width:100%\">\n" +
-                    "    <tr>\n" +
-                    "        <th>Document Id</th>\n" +
-                    "        <th>Document Title</th>\n" +
-                    "        <th>Score</th>\n" +
-                    "    </tr>\n" +
-                    postingsRows.toString() +
-                    "</table>";
-
+        if(testThroughput == true) {
+            testIterations = TEST_ITERATIONS;
         }
+        for(int iteration = 0; iteration < testIterations; iteration++) {
+            if (isBooleanQuery) {//process a boolean query
+                List<Posting> postings = userBooleanQueryInput(corpus, index, kGramIndex, queryValue);
 
-        long stopTime = System.nanoTime();
-        queryRuntime = (double)(stopTime - startTime) / 1_000_000_000.0;
-        System.out.println("Query Time: " + queryRuntime + " seconds\n");
 
+                for (Posting post : postings) {//include document titles for each returned posting
+
+                    String title = corpus.getDocument(post.getDocumentId()).getTitle();
+                    String row = "    <tr>\n" +
+                            "        <td>"+post.getDocumentId()+"</td>\n" +
+                            "        <td><button id=\"" + post.getDocumentId() + "\" onClick=\"docClicked(this.id)\" >"+title+"</button></td>\n" +
+                            "        <td>"+post.getPositions()+"</td>\n" +
+                            "    </tr>\n";
+                    postingsRows.append(row);
+
+                }
+
+                result = "<div><b>Query: </b>" + queryValue +
+                        "<div>Total Documents: " + postings.size() + "</div></div></br>" +
+                        "<table style=\"width:100%\">\n" +
+                        "    <tr>\n" +
+                        "        <th>Document ID</th>\n" +
+                        "        <th>Document Title</th>\n" +
+                        "        <th>Positions</th>\n" +
+                        "    </tr>\n" +
+                        postingsRows.toString() +
+                        "</table>";
+
+            } else {
+
+                PriorityQueue<Accumulator> pq = userRankedQueryInput(corpus, index, kGramIndex, queryValue);
+                String suggestedQuery = SpellingCorrection.getSuggestedQuery();
+
+                int pqSize = pq.size();
+                while(!pq.isEmpty()){
+                    Accumulator currAcc = pq.poll();
+                    String title = corpus.getDocument(currAcc.getDocId()).getTitle();
+                    int docId = currAcc.getDocId() + 1;
+                    for (int i = 0; i < relevantDocsCran.length; i++) {
+                        if (docId == relevantDocsCran[i]) {
+                            System.out.println(relevantDocsCran[i] + " was included.");
+                        }
+                    }
+                    double value = currAcc.getA_d();
+                    String row = "    <tr>\n" +
+                            "        <td>"+docId+"</td>\n" +
+                            "        <td><button id=\"" + docId + "\" onClick=\"docClicked(this.id)\" >"+title+"</button></td>\n" +
+                            "        <td>"+value+"</td>\n" +
+                            "    </tr>\n";
+                    postingsRows.insert(0,row);
+                }
+
+                result = "<div><b>Top " + RANKED_RETURN + " Results for: </b>" + queryValue +
+                        "<div>Suggested Query: <button id=\"spelling-correction-btn\" onClick=\"suggestedQueryClicked(this.value)\">" + suggestedQuery + "</button></div>" +
+                        "<div>Total Documents: " + pqSize + "</div></div></br>" +
+                        "<table style=\"width:100%\">\n" +
+                        "    <tr>\n" +
+                        "        <th>Document Id</th>\n" +
+                        "        <th>Document Title</th>\n" +
+                        "        <th>Score</th>\n" +
+                        "    </tr>\n" +
+                        postingsRows.toString() +
+                        "</table>";
+
+            }
+
+            long stopTime = System.nanoTime();
+            queryRuntime = (double)(stopTime - startTime) / 1_000_000_000.0;
+            setQueryTime(queryTime + queryRuntime);
+            System.out.println("Query Time: " + queryRuntime + " seconds\n");
+        }
         return result;
 
     }
@@ -162,6 +169,18 @@ public class Search {
         }
 
         return pq;
+    }
+
+    public double getQueryTime() {
+        return queryTime;
+    }
+
+    public void setQueryTime(double queryTime) {
+        this.queryTime = queryTime;
+    }
+
+    public int getTEST_ITERATIONS() {
+        return TEST_ITERATIONS;
     }
 
     public static void getAveragePrecision() {

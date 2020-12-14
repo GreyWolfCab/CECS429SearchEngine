@@ -21,6 +21,7 @@
             <button id="searchButton" >SEARCH</button>
             <div>
                 <input type="checkbox" id="ranked-search" name="ranked-search" value="Ranked Query" > Ranked Query </input>
+                <input type="checkbox" id="test-throughput" name="test-throughput" value="Test Throughput" > Test Speed </input>
             </div>
         </div>
         <div id="search-contents" style=" font-size: 12px;height: 750px; overflow-x: scroll;"></div>
@@ -44,6 +45,10 @@
             } else {
                 if(document.getElementById("ranked-search").checked == false) {
                     $.post("/search", {queryValue: queryValue}, function(result){
+                        $(result).prependTo($("#search-contents"));
+                    });
+                } else if(document.getElementById("ranked-search").checked && document.getElementById("test-throughput").checked) {
+                    $.post("/ranked-search-test", {queryValue: queryValue}, function(result){
                         $(result).prependTo($("#search-contents"));
                     });
                 } else {
