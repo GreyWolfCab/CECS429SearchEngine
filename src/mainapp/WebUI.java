@@ -59,7 +59,7 @@ public class WebUI {
         Spark.post("/search", (request, response) -> {
 
             String queryValue = request.queryParams("queryValue");
-            return search.performSearch(corpus, index, kGramIndex, queryValue, true, false);
+            return search.performSearch(corpus, index, kGramIndex, queryValue, null, true, false);
         });
 
         // post ranked query values based on query inputs from client (outputs as html table)
@@ -68,7 +68,7 @@ public class WebUI {
 
             String queryValue = request.queryParams("queryValue");
 
-            return search.performSearch(corpus, index, kGramIndex, queryValue, false, false);
+            return search.performSearch(corpus, index, kGramIndex, queryValue, leaders, false, false);
 
         });
 
@@ -76,13 +76,14 @@ public class WebUI {
 
             String queryValue = request.queryParams("queryValue");
             search.setQueryTime(0.0);
-            search.performSearch(corpus, index, kGramIndex, queryValue, false, true);
+            search.performSearch(corpus, index, kGramIndex, queryValue, leaders, false, true);
             double time = search.getQueryTime();
             double meanResponseTime = time/search.getTEST_ITERATIONS();
             double throughput = 1/meanResponseTime;
             return "<div style=\"font-size: 12px;\">Total Time To Complete 30 iterations: " + time + " seconds</div>" +
                     "<div style=\"font-size: 12px;\">Mean Response Time: " + meanResponseTime + " seconds</div>" +
-                    "<div style=\"font-size: 12px;\">Throughput: " + throughput + " queries/second</div>";
+                    "<div style=\"font-size: 12px;\">Throughput: " + throughput + " queries/second</div>" +
+                    "<br>";
 
         });
 

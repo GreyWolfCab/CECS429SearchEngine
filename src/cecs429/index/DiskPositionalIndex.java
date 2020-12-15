@@ -48,6 +48,33 @@ public class DiskPositionalIndex implements Index {
 
     }
 
+    public ArrayList<Integer> getDocumentFollowers(int leaderId) {
+
+        ArrayList<Integer> allFollowers = new ArrayList<>();
+
+        try (RandomAccessFile raf = new RandomAccessFile(indexLocation + "\\leaderIndex.bin", "r")) {
+
+            int numOfLeaders = raf.readInt();
+            for (int i = 0; i < numOfLeaders; i++) {
+                int tempLeaderId = raf.readInt();//get leaderid
+                int numOfFollowers = raf.readInt();//get # of followers
+                if (tempLeaderId == leaderId) {
+                    for (int j = 0; j < numOfFollowers; j++) {
+                        allFollowers.add(raf.readInt());
+                    }
+                } else {
+                    raf.seek(raf.getFilePointer() + (numOfFollowers * 4));//int needs 4-byte offset
+                }
+            }
+
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
+
+        return allFollowers;
+
+    }
+
     public double getDocumentWeight(int docId) {
 
         try (RandomAccessFile raf = new RandomAccessFile(indexLocation + "\\docWeights.bin", "r")) {

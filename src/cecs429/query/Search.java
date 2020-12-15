@@ -16,7 +16,7 @@ public class Search {
     private final int TEST_ITERATIONS = 30;
     private double queryTime = 0.0;
 
-    public String performSearch(DocumentCorpus corpus, Index index, KGram kGramIndex, String queryValue, Boolean isBooleanQuery, Boolean testThroughput) {
+    public String performSearch(DocumentCorpus corpus, Index index, KGram kGramIndex, String queryValue, ArrayList<Integer> leaders, Boolean isBooleanQuery, Boolean testThroughput) {
 
         StringBuilder postingsRows = new StringBuilder();
         String result = "";
@@ -61,7 +61,12 @@ public class Search {
 
             } else {
 
-                PriorityQueue<Accumulator> pq = userRankedQueryInput(corpus, index, kGramIndex, queryValue);
+                PriorityQueue<Accumulator> pq;
+                if(leaders == null) {
+                    pq = userRankedQueryInput(corpus, index, kGramIndex, queryValue);
+                } else {
+                    pq = userRankedQueryInput(corpus, index, kGramIndex, queryValue, leaders);
+                }
                 String suggestedQuery = SpellingCorrection.getSuggestedQuery();
 
                 int pqSize = pq.size();
@@ -69,11 +74,12 @@ public class Search {
                     Accumulator currAcc = pq.poll();
                     String title = corpus.getDocument(currAcc.getDocId()).getTitle();
                     int docId = currAcc.getDocId() + 1;
-                    for (int i = 0; i < relevantDocsCran.length; i++) {
-                        if (docId == relevantDocsCran[i]) {
-                            System.out.println(relevantDocsCran[i] + " was included.");
-                        }
-                    }
+//                    for (int i = 0; i < relevantDocsCran.length; i++) {
+//                        if (docId == relevantDocsCran[i]) {
+//                            System.out.println(relevantDocsCran[i] + " was included.");
+//                        }
+//                    }
+                    docId--;
                     double value = currAcc.getA_d();
                     String row = "    <tr>\n" +
                             "        <td>"+docId+"</td>\n" +
@@ -106,7 +112,116 @@ public class Search {
 
     }
 
-    public static PriorityQueue<Accumulator> userRankedQueryInput(DocumentCorpus corpus, Index index, KGram kGramIndex, String queryInput){
+    //ranked query with cluster pruning
+    public static PriorityQueue<Accumulator> userRankedQueryInput(DocumentCorpus corpus, Index index, KGram kGramIndex, String queryInput, ArrayList<Integer> leaders) {
+
+        double n = corpus.getCorpusSize();
+        List<TermLiteral> termLiterals = new ArrayList<TermLiteral>();
+        int counter = 0;
+        List<Posting> postings = new ArrayList<Posting>();
+        HashMap<Posting, Double> hm = new HashMap<>();
+        PriorityQueue<Accumulator> pq = new PriorityQueue<>(RANKED_RETURN);
+
+        String[] terms = queryInput.split(" ");
+        SpellingCorrection.setSuggestedQuery("");
+        SpellingCorrection.discardSuggested = false;
+
+        for (String term : terms) { // find the leader that fulfills the query
+            term = term.toLowerCase();
+            String stemmedTerm = AdvancedTokenProcesser.stemToken(term);
+            termLiterals.add(new TermLiteral(stemmedTerm));
+
+            int df_t = index.getDocumentFrequencyOfTerm(stemmedTerm);
+            double w_qt = Math.log(1 + n/df_t);  // calculate wqt = ln(1 + N/dft)
+
+            postings = termLiterals.get(counter).getPostings(index, kGramIndex);
+            counter++;
+            double tf_td = (double) index.getTermFrequency(stemmedTerm) / (double) postings.size();
+            for(Posting p : postings){ // for each document in postings list
+                if (leaders.contains(p.getDocumentId())) {
+                    //Document d = corpus.getDocument(p.getDocumentId());//very slow
+                    //double tf_td = index.getTermDocumentFrequency(stemmedTerm, d.getId());//Horribly slow
+                    double w_dt = 1 + Math.log(tf_td);
+                    double a_d = (w_dt * w_qt);
+                    if (hm.get(p) != null) {
+                        hm.put(p, hm.get(p) + a_d);
+                    } else {
+                        hm.put(p, a_d);
+                    }
+                }
+            }
+        }
+
+        List<Accumulator> accumulators = new ArrayList<Accumulator>();
+        hm.forEach((key,value) -> accumulators.add(new Accumulator(key.getDocumentId(),value)));
+        for (Accumulator acc : accumulators){
+            // only retain the a certain amount of the top results
+            double value = acc.getA_d() / index.getDocumentWeight(acc.getDocId());
+            acc.setA_d(value);
+            if(pq.size() < RANKED_RETURN || pq.peek().getA_d() < acc.getA_d()){
+                if(pq.size() == RANKED_RETURN){
+                    pq.remove();
+                }
+                pq.add(acc);
+            }
+        }
+
+        int leaderId = 0;
+        while(!pq.isEmpty()) {
+            leaderId = pq.poll().getDocId();
+        }
+
+        ArrayList<Integer> followers = index.getDocumentFollowers(leaderId);
+        counter = 0;
+        postings = new ArrayList<Posting>();
+        termLiterals = new ArrayList<TermLiteral>();
+
+        for (String term : terms) { // order the followers that fulfills the query
+            term = term.toLowerCase();
+            String stemmedTerm = AdvancedTokenProcesser.stemToken(term);
+            termLiterals.add(new TermLiteral(stemmedTerm));
+
+            int df_t = index.getDocumentFrequencyOfTerm(stemmedTerm);
+            double w_qt = Math.log(1 + n/df_t);  // calculate wqt = ln(1 + N/dft)
+
+            postings = termLiterals.get(counter).getPostings(index, kGramIndex);
+            counter++;
+            double tf_td = (double) index.getTermFrequency(stemmedTerm) / (double) postings.size();
+            for(Posting p : postings){ // for each document in postings list
+                if (followers.contains(p.getDocumentId())) {
+                    //Document d = corpus.getDocument(p.getDocumentId());//very slow
+                    //double tf_td = index.getTermDocumentFrequency(stemmedTerm, d.getId());//Horribly slow
+                    double w_dt = 1 + Math.log(tf_td);
+                    double a_d = (w_dt * w_qt);
+                    if (hm.get(p) != null) {
+                        hm.put(p, hm.get(p) + a_d);
+                    } else {
+                        hm.put(p, a_d);
+                    }
+                }
+            }
+        }
+
+        List<Accumulator> followersAccumulators = new ArrayList<Accumulator>();
+        hm.forEach((key,value) -> accumulators.add(new Accumulator(key.getDocumentId(),value)));
+        for (Accumulator acc : accumulators){
+            // only retain the a certain amount of the top results
+            double value = acc.getA_d() / index.getDocumentWeight(acc.getDocId());
+            acc.setA_d(value);
+            if(pq.size() < RANKED_RETURN || pq.peek().getA_d() < acc.getA_d()){
+                if(pq.size() == RANKED_RETURN){
+                    pq.remove();
+                }
+                pq.add(acc);
+            }
+        }
+
+        return pq;
+
+    }
+
+    //ranked query with vocab elimination
+    public static PriorityQueue<Accumulator> userRankedQueryInput(DocumentCorpus corpus, Index index, KGram kGramIndex, String queryInput) {
         double n = corpus.getCorpusSize();
         List<TermLiteral> termLiterals = new ArrayList<TermLiteral>();
         int counter = 0;

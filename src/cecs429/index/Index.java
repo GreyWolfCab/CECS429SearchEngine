@@ -25,4 +25,6 @@ public interface Index  {
 
 	ArrayList<Integer> getDocumentLeaders();
 
+	ArrayList<Integer> getDocumentFollowers(int leaderId);
+
 }
