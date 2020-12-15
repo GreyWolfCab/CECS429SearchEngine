@@ -22,6 +22,7 @@ public class Indexer {
 
         PositionalInvertedIndex index = new PositionalInvertedIndex();//create positional index
         AdvancedTokenProcesser processor = new AdvancedTokenProcesser();//create token processor
+        ClusterPruningIndex clusterIndex = new ClusterPruningIndex();
 
         DiskIndexWriter diskIndexWriter = new DiskIndexWriter();
         ArrayList<Double> documentWeight = new ArrayList<>();
@@ -29,8 +30,15 @@ public class Indexer {
         // Get all the documents in the corpus by calling GetDocuments().
         Iterable<Document> documents = corpus.getDocuments();
 
-        for (Document docs : documents) {//iterate through every valid document found in the corpus
+        HashMap<String, Integer> mostPopularTerms = new HashMap<>();
+        int currentDoc = 0;
+        String[] vectorTerms = {"flow", "on", "at", "by", "that", "pressur", "an", "be", "number", "boundari", "layer", "from", "as", "result", "this", "it", "effect", "which", "method", "theori", "bodi", "solut", "heat", "wing", "mach", "equat", "shock", "use", "present", "was", "surfac", "distribut", "obtain", "two", "temperatur", "ratio", "been", "problem", "were", "veloc", "approxim", "calcul", "case", "have", "test", "plate", "investig", "given", "condit", "speed", "these", "valu", "transfer", "wave", "or", "has", "angl", "experiment", "superson", "jet", "made", "cylind", "edg", "rang", "measur", "laminar", "found", "load", "can", "stream", "lift", "determin", "coeffici", "analysi", "over", "increas", "general", "reynold", "wall", "free", "base", "high", "point", "turbul", "dimension", "also", "between", "some", "hyperson", "stress", "shown", "than", "buckl", "separ"};
+        double[][] termVectorSpace = new double[corpus.getCorpusSize()][vectorTerms.length];
 
+        for (Document docs : documents) {//iterate through every valid document found in the corpus
+            currentDoc = docs.getId();
+            int totalTerms = 0;
+            double[] docVector = new double[vectorTerms.length];
             HashMap<String, Integer> termFrequency = new HashMap<>();//term frequency of every term in a document
 
             // Tokenize the document's content by constructing an EnglishTokenStream around the document's content.
@@ -54,8 +62,33 @@ public class Indexer {
                 }
                 index.addTerm(words, docs.getId(), wordPosition, docs.getTitle());//add word data to index
                 wordPosition++;//increment word position
-
+                totalTerms = words.size();
             }
+
+            /* Determine popular terms */
+            int finalTotalTerms = totalTerms;
+            termFrequency.forEach((key, value) -> {
+
+                for (int j = 0; j < vectorTerms.length; j++) {
+                    if (key.equals(vectorTerms[j])) {
+                        docVector[j] = (double) value / finalTotalTerms;
+                    }
+                }
+
+                if (mostPopularTerms.containsKey(key)) {
+                    int prevFrequency = mostPopularTerms.get(key);
+                    mostPopularTerms.put(key, prevFrequency + value);
+                } else {
+                    mostPopularTerms.put(key, 1);
+                }
+
+            });
+
+            for (int j = 0; j < docVector.length; j++) {
+                termVectorSpace[currentDoc][j] = docVector[j];
+            }
+
+            /* */
 
             double sumTermWeights = 0;//sum of term weights
             ArrayList<Integer> tf_d = new ArrayList<>(termFrequency.values());//every term frequency in the document
@@ -71,6 +104,37 @@ public class Indexer {
 
         }
 
+//        for (int i = 0; i < termVectorSpace.length; i++) {
+//            System.out.print(i + ": [");
+//            for (int j = 0; j < termVectorSpace[i].length; j++) {
+//                System.out.print(termVectorSpace[i][j] + ", ");
+//            }
+//            System.out.println("]");
+//
+//        }
+
+        /* Determine popular terms
+        // Create a list from elements of HashMap
+        List<Map.Entry<String, Integer> > list =
+                new LinkedList<Map.Entry<String, Integer> >(mostPopularTerms.entrySet());
+
+        // Sort the list
+        Collections.sort(list, new Comparator<Map.Entry<String, Integer> >() {
+            public int compare(Map.Entry<String, Integer> o1,
+                               Map.Entry<String, Integer> o2)
+            {
+                return (o2.getValue()).compareTo(o1.getValue());
+            }
+        });
+
+        for (int i = 0; i < list.size(); i++) {
+            System.out.print("\"" + list.get(i).getKey() + "\", ");//determine the most popular words in the corpus
+        }
+
+        /* */
+
+        //write document leaders to disk
+        diskIndexWriter.writeLeaderIndex(clusterIndex.chooseLeaders(corpus, termVectorSpace), corpus.getCorpusSize(), indexLocation);
         //write document weights to disk
         diskIndexWriter.writeDocumentWeights(documentWeight, indexLocation);
         diskIndexWriter.writeKGramIndex(kGramIndex, indexLocation);

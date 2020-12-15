@@ -27,11 +27,32 @@ public class DiskPositionalIndex implements Index {
         }
     }
 
+    public ArrayList<Integer> getDocumentLeaders() {
+
+        ArrayList<Integer> allLeaders = new ArrayList<>();
+
+        try (RandomAccessFile raf = new RandomAccessFile(indexLocation + "\\leaderIndex.bin", "r")) {
+
+            int numOfLeaders = raf.readInt();
+            for (int i = 0; i < numOfLeaders; i++) {
+                allLeaders.add(raf.readInt());//get leaderid
+                int numOfFollowers = raf.readInt();//get # of followers
+                raf.seek(raf.getFilePointer() + (numOfFollowers * 4));//int needs 4-byte offset
+            }
+
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
+
+        return allLeaders;//-2 means no leader found, because -1 means this doc id is a leader
+
+    }
+
     public double getDocumentWeight(int docId) {
 
         try (RandomAccessFile raf = new RandomAccessFile(indexLocation + "\\docWeights.bin", "r")) {
 
-            raf.seek(docId * 8);//account for 8-byte offset
+            raf.seek(docId * 8);//double needs 8-byte offset
             return raf.readDouble();
 
         } catch (IOException ioe) {

@@ -8,7 +8,6 @@ import cecs429.query.Search;
 import spark.ModelAndView;
 import spark.Spark;
 import spark.template.thymeleaf.ThymeleafTemplateEngine;
-import testing.Accumulator;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -21,6 +20,7 @@ public class WebUI {
     private static Search search = new Search();
     private static Index index = null;
     private static KGram kGramIndex = null;
+    private static ArrayList<Integer> leaders;
     private static String dir = "";
     private static DocumentCorpus corpus = null;
     private static DiskIndexWriter diskIndexWriter = new DiskIndexWriter();
@@ -151,6 +151,7 @@ public class WebUI {
             corpus = indexer.requestDirectory(dir);
             kGramIndex = indexer.buildDiskKGramIndex(dir);
             index = indexer.buildDiskPositionalIndex(dir);//builds positional index and k-gram index
+            leaders = index.getDocumentLeaders();
         } else {//create in memory index
             corpus = indexer.requestDirectory(dir);
             kGramIndex = new KGramIndex();

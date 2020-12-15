@@ -108,6 +108,11 @@ public class PositionalInvertedIndex implements Index {
 
 	}
 
+	public ArrayList<Integer> getDocumentLeaders() {
+		//only needed for ranked queries
+		return null;
+	}
+
 	public double getDocumentWeight(int docId) {
 
 		//only needed for ranked queries

@@ -6,9 +6,7 @@ import org.mapdb.DBMaker;
 import org.mapdb.Serializer;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class DiskIndexWriter {
 
@@ -148,6 +146,68 @@ public class DiskIndexWriter {
         db.close();
 
         return termAddresses;
+
+    }
+
+    public void writeLeaderIndex(int[] docsToLeaders, int corpusSize, String indexLocation) {
+
+        createIndexFolder(indexLocation);
+
+        //format: leadID : # of followers : followerId_1 : followerId_2
+
+        //create leaderIndex.bin file to act associate docs to leaders
+        try (DataOutputStream dout = new DataOutputStream(
+                new BufferedOutputStream(
+                        new FileOutputStream(indexLocation + "\\index\\leaderIndex.bin")))) {
+
+            HashMap<Integer, Integer> followerToLeader = new HashMap<>();//(followerID, leaderID)
+            for (int i = 0; i < docsToLeaders.length; i++) {
+                if (docsToLeaders[i] != -1) {
+                    followerToLeader.put(i, docsToLeaders[i]);
+                }
+            }
+
+            /* sort followers by ascending leaders */
+            // Create a list from elements of HashMap
+            List<Map.Entry<Integer, Integer> > list =
+                    new LinkedList<Map.Entry<Integer, Integer> >(followerToLeader.entrySet());
+
+            // Sort the list
+            Collections.sort(list, new Comparator<Map.Entry<Integer, Integer> >() {
+                public int compare(Map.Entry<Integer, Integer> o1,
+                                   Map.Entry<Integer, Integer> o2)
+                {
+                    return (o1.getValue()).compareTo(o2.getValue());
+                }
+            });
+
+            dout.writeInt((int) Math.sqrt(corpusSize));//write the number of leaders
+            for (int i = 0; i < list.size(); ) {
+
+                int leaderId = list.get(i).getValue();
+                ArrayList<Integer> followers = new ArrayList<>();
+                int totalFollowers = 0;
+                int j = i;
+                while(j < list.size() && leaderId == list.get(j).getValue()) {
+                    followers.add(list.get(j).getKey());
+                    totalFollowers++;
+                    j++;
+
+                }
+
+                dout.writeInt(leaderId);
+                dout.writeInt(totalFollowers);
+                for (int y = 0; y < followers.size(); y++) {
+                    dout.writeInt(followers.get(y));
+                }
+
+                i = j;
+
+            }
+
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
 
     }
 

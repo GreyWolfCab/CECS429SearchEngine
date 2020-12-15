@@ -1,62 +1,94 @@
 package cecs429.index;
 
-import cecs429.documents.Document;
 import cecs429.documents.DocumentCorpus;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 public class ClusterPruningIndex {
 
-    private ArrayList<Integer> leaders;
+    private HashMap<Integer, double[]> leaders = new HashMap<>();
 
 
     // create sqrt(N) leaders (randomly)
-    public void chooseLeaders(DocumentCorpus corpus, Index index){
+    public int[] chooseLeaders(DocumentCorpus corpus, double[][] termVectorSpace){
         int n = corpus.getCorpusSize();
-        double numOfLeaders = Math.sqrt(n);
+        int numOfLeaders = (int)Math.sqrt(n);
         Random rand = new Random();
         int randomID;
 
         // create list of document leader ids
-        for( int i = 0; i < numOfLeaders;  ) {
+        for(int i = 0; i < numOfLeaders; i++) {
             randomID = rand.nextInt(n + 1);
-            leaders.add(randomID);
-        }
-    }
-    // compute the nearest leader for every document in the corpus (saving information on-disk)
-    public int computeNearestLeader(Index index, int docId){
-        int nearestLeader = -1;
-        double minDistance = Double.POSITIVE_INFINITY;
-        if(leaders == null) {
-            return -1;
-        }
-        // currently finding nearest leader based on smallest document weight difference ??
-        for (int leaderId : leaders){
-            double currentDistance = index.getDocumentWeight(leaderId) - index.getDocumentWeight(docId);
-            if (currentDistance < minDistance) {
-                minDistance = currentDistance;
-                nearestLeader = leaderId;
+            if (!leaders.containsKey(randomID)) {//prevent duplicate leaders
+                leaders.put(randomID, termVectorSpace[randomID]);
+            } else {
+                i--;
             }
         }
 
-        return nearestLeader;
+        return computeNearestLeader(termVectorSpace);
+    }
+    // compute the nearest leader for every document in the corpus (saving information on-disk)
+    public int[] computeNearestLeader(double[][] termVectorSpace){
+
+        int[] docsToLeaders = new int[termVectorSpace.length];//-1 means it's a leader
+        for (int i = 0; i < termVectorSpace.length; i++) {
+
+            if (leaders.containsKey(i)) {
+                docsToLeaders[i] = -1;
+            } else {
+                docsToLeaders[i] = findNearestLeader(termVectorSpace[i]);
+            }
+
+        }
+
+        return docsToLeaders;
+
     }
 
-    // store nearestleader on disk
-    public void ClusterPruningIndexer(DocumentCorpus corpus, Index index) {
-        chooseLeaders(corpus, index);
-        Iterable<Document> documents = corpus.getDocuments();
-        int leaderId = 0;
+    public int findNearestLeader(double[] vectorSpace) {
 
-        for (Document doc : documents){
-            int docId = doc.getId();
-            leaderId = computeNearestLeader(index, docId);
-            // store leaderId on disk..
-
-            // ???
+        double cos_theta = Double.MIN_VALUE;//closer to 1 means it is more simlar
+        int bestLeader = 0;
+        for (Map.Entry<Integer, double[]> entry : leaders.entrySet()) {//find the nearest leader
+            double temp_cos = calculateSimilarity(entry.getValue(), vectorSpace);
+            if (cos_theta < temp_cos) {
+                cos_theta = temp_cos;
+                bestLeader = entry.getKey();
+            }
         }
+
+        return bestLeader;
+
+    }
+
+    public double calculateSimilarity(double[] lead, double[] doc) {
+        //dot product
+        double dotProduct = dotProduct(lead, doc);
+        // product of magnitudes
+        double magnitudeProduct = findMagnitude(lead) * findMagnitude(doc);
+
+        return dotProduct / magnitudeProduct;
+    }
+
+    public double dotProduct(double[] lead, double[] doc) {
+
+        double sum = 0;
+        for (int i = 0; i < lead.length; i++)
+        {
+            sum += lead[i] * doc[i];
+        }
+        return sum;
+
+    }
+
+    public double findMagnitude(double[] vector) {
+
+        double magnitude = 0;
+        for (int i = 0; i < vector.length; i++) {
+            magnitude += Math.pow(vector[i], 2);
+        }
+        return Math.sqrt(magnitude);
 
     }
 }

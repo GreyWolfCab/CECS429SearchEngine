@@ -1,5 +1,6 @@
 package cecs429.index;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public interface Index  {
@@ -21,5 +22,7 @@ public interface Index  {
 	double getDocumentWeight(int docId);
 
 	int getDocumentFrequencyOfTerm(String term);
+
+	ArrayList<Integer> getDocumentLeaders();
 
 }
