@@ -12,7 +12,7 @@ import java.util.*;
 public class Search {
 
     private static final int RANKED_RETURN = 50;
-    private static final double VOCAB_ELIMINATION_THRESHOLD = 0;// 3 because it is the best
+    private static final double VOCAB_ELIMINATION_THRESHOLD = 3;// 3 because it is the best
     private final int TEST_ITERATIONS = 30;
     private double queryTime = 0.0;
 
@@ -21,8 +21,6 @@ public class Search {
         StringBuilder postingsRows = new StringBuilder();
         String result = "";
         int testIterations = 1;
-
-        int[] relevantDocsCran = {51, 184, 486, 12, 879, 13, 14, 876, 102, 56, 875, 378};
 
         System.out.println("Starting Query...");//calculate how long it takes to execute
         double queryRuntime;
@@ -74,11 +72,6 @@ public class Search {
                     Accumulator currAcc = pq.poll();
                     String title = corpus.getDocument(currAcc.getDocId()).getTitle();
                     int docId = currAcc.getDocId() + 1;
-//                    for (int i = 0; i < relevantDocsCran.length; i++) {
-//                        if (docId == relevantDocsCran[i]) {
-//                            System.out.println(relevantDocsCran[i] + " was included.");
-//                        }
-//                    }
                     docId--;
                     double value = currAcc.getA_d();
                     String row = "    <tr>\n" +
@@ -109,6 +102,55 @@ public class Search {
             System.out.println("Query Time: " + queryRuntime + " seconds\n");
         }
         return result;
+
+    }
+
+    public double testSearch(DocumentCorpus corpus, Index index, KGram kGramIndex, String queryValue, ArrayList<Integer> leaders, Boolean isBooleanQuery, Boolean testThroughput, int[] relDocs) {
+
+        System.out.println("Starting Query...");//calculate how long it takes to execute
+        double queryRuntime;
+        long startTime = System.nanoTime();
+
+        PriorityQueue<Accumulator> pq;
+        if(leaders == null) {
+            pq = userRankedQueryInput(corpus, index, kGramIndex, queryValue);
+        } else {
+            pq = userRankedQueryInput(corpus, index, kGramIndex, queryValue, leaders);
+        }
+
+        System.out.println("Query: " + queryValue.substring(0, queryValue.length()-2));
+        System.out.print("Relevant: ");
+
+        double relevantSum = 0;
+        int relevantIndex = 0;
+        int totalRelevantDocs = 0;
+        while(!pq.isEmpty()){
+            Accumulator currAcc = pq.poll();
+            relevantIndex++;
+            String title = corpus.getDocument(currAcc.getDocId()).getTitle();
+            int docId = currAcc.getDocId() + 1;
+            for (int i = 0; i < relDocs.length; i++) {
+                if (relDocs[i] == docId) {
+                    System.out.print(docId + ", ");
+                    totalRelevantDocs++;
+                    relevantSum += (double) totalRelevantDocs / relevantIndex;
+                    break;
+                }
+            }
+
+        }
+
+        double avgPrecision = ((double)1/relDocs.length) * relevantSum;
+
+        System.out.println();
+
+        long stopTime = System.nanoTime();
+        queryRuntime = (double)(stopTime - startTime) / 1_000_000_000.0;
+        setQueryTime(queryTime + queryRuntime);
+        System.out.println("Query Time: " + queryRuntime + " seconds");
+        System.out.println("Average Precision: " + avgPrecision + "\n");
+
+        return avgPrecision;
 
     }
 

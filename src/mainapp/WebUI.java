@@ -18,6 +18,7 @@ import static java.util.stream.Collectors.joining;
 public class WebUI {
     private static Indexer indexer = new Indexer();
     private static Search search = new Search();
+    private static TestQueries testQueries = new TestQueries();
     private static Index index = null;
     private static KGram kGramIndex = null;
     private static ArrayList<Integer> leaders;
@@ -116,7 +117,11 @@ public class WebUI {
             if (squeryValue.length() == 2 && squeryValue.substring(1, 2).equals("q")) {
                 System.out.println("\nEnding program...");
                 System.exit(-1);
-            } if (squeryValue.length() >= 5 && squeryValue.substring(1, 5).equals("stem")) {
+                return "";
+            } else if (squeryValue.length() >= 5 && squeryValue.substring(1, 5).equals("test")) {
+                testQueries.runTestQueries(dir, corpus, index, kGramIndex, leaders, false, false);
+                return "</br><div style=\"font-size: 12px;\">Running test queries</div></br>";
+            } else if (squeryValue.length() >= 5 && squeryValue.substring(1, 5).equals("stem")) {
                 stemmedTerm = indexer.userSQueryStem(squeryValue);
                 System.out.printf("%s stemmed to: %s", squeryValue.substring(6), stemmedTerm);
                 System.out.println();
